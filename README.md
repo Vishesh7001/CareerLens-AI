@@ -4,7 +4,7 @@
 
 CareerLens AI is an enterprise-grade, full-stack platform engineered to empower modern job seekers with advanced AI analytics, deep resume intelligence, skill gap identification, and precision career path mapping.
 
-This repository represents **Phase 1: Foundation, Project Architecture & Authentication**.
+This repository represents **Phase 1: Foundation, Project Architecture & Authentication** and **Phase 2: Resume Upload & Parsing**.
 
 ---
 
@@ -41,8 +41,9 @@ Phase 1 establishes the rock-solid architectural core:
 
 ---
 
-## Phase 1 Objectives & Deliverables
+## Phase 1 & 2 Objectives & Deliverables
 
+### Phase 1: Foundation & Authentication
 - [x] **Monorepo Architecture**: Clean separation between `frontend/`, `backend/`, and `ai-service/`.
 - [x] **Authentication Engine**: Bcrypt password encryption (salt factor 12), JWT issuance, HTTP-only cookies (preventing client-side token exposure via XSS), and `SameSite` attribute controls paired with CORS origin whitelisting.
 - [x] **Node.js-to-FastAPI Communication**: Built-in `fetch()` proxy layer with `AbortController` timeout handling, safe error classification, and Express route `GET /api/ai/health`.
@@ -51,7 +52,15 @@ Phase 1 establishes the rock-solid architectural core:
 - [x] **User Profile Management**: Authenticated users can view details and update their name; email remains locked in Phase 1 for credential integrity.
 - [x] **FastAPI Microservice**: Standalone service featuring CORS, OpenAPI/Swagger documentation, and a monitored `/health` endpoint.
 - [x] **Responsive UI/UX**: Full desktop sidebar, tablet collapsible mode, mobile drawer navigation, single-column responsive auth forms, and touch-friendly controls without unnecessary visual clutter.
-- [x] **Automated Testing Suite**: 26 automated integration and unit tests across 2 test suites covering authentication, session lifecycle, security boundaries, rate limiting, and AI microservice communication.
+
+### Phase 2: Resume Upload & Parsing
+- [x] **Secure PDF Resume Upload**: Drag-and-drop and browse interface, client & server file type validation (.pdf), 5MB size limit, magic byte validation (`%PDF-`).
+- [x] **Isolated Disk Storage**: Configurable `RESUME_STORAGE_PATH` with automatic user directory isolation, safe cleanup on replace/delete, path traversal prevention.
+- [x] **Robust PDF Text Extraction**: Unpooled `Uint8Array` memory handling for Node.js memory pools, multi-page extraction, blank/corrupted PDF rejection.
+- [x] **Rule-Based Resume Parser**: Modular regex/pattern classification across 6 structured categories (Personal Info, Skills in 5 subcategories, Work Experience, Education, Projects, Certifications).
+- [x] **MongoDB Resume Schema**: User association (`user: req.user._id`), metadata persistence, parsed data indexing, and `toJSON` stripping internal server paths.
+- [x] **Frontend Resume Management**: Dedicated dashboard resume section, upload dropzone with progress bar, parsed resume view with categorized skill badges, download & replace controls, delete confirmation.
+- [x] **Automated Testing Suite**: 42 automated integration and unit tests across 3 test suites covering authentication, session lifecycle, security boundaries, rate limiting, AI microservice communication, and complete resume upload/parsing workflows.
 
 ---
 
@@ -133,7 +142,8 @@ CareerLens-Ai/
 │   │   ├── assets/
 │   │   ├── components/
 │   │   │   ├── common/       # Button, Input, Card, LoadingSpinner
-│   │   │   └── layout/       # Navbar, Footer, Sidebar, Topbar, DashboardLayout
+│   │   │   ├── layout/       # Navbar, Footer, Sidebar, Topbar, DashboardLayout
+│   │   │   └── resume/       # ResumeSection, ResumeUploadCard, ParsedResumeView
 │   │   ├── context/          # AuthContext (login, register, logout, session persistence)
 │   │   ├── hooks/            # useAuth hook
 │   │   ├── pages/
@@ -146,13 +156,14 @@ CareerLens-Ai/
 │   │   ├── routes/
 │   │   │   └── ProtectedRoute.jsx
 │   │   ├── services/
-│   │   │   ├── api.js         # Axios instance with credentials
-│   │   │   └── authService.js # API calls for auth and user profile
+│   │   │   ├── api.js           # Axios instance with credentials
+│   │   │   ├── authService.js   # API calls for auth and user profile
+│   │   │   └── resumeService.js # Resume upload, retrieval, download, delete
 │   │   ├── utils/
-│   │   │   └── validation.js  # Form validation & password strength
-│   │   ├── App.jsx            # Route definitions
-│   │   ├── main.jsx           # Entry point
-│   │   └── index.css          # Tailwind base directives
+│   │   │   └── validation.js    # Form & resume file validation, size formatting
+│   │   ├── App.jsx              # Route definitions
+│   │   ├── main.jsx             # Entry point
+│   │   └── index.css            # Tailwind base directives
 │   ├── index.html
 │   ├── package.json
 │   ├── tailwind.config.js
@@ -164,28 +175,37 @@ CareerLens-Ai/
 │   ├── config/
 │   │   └── db.js              # MongoDB Atlas connection handler
 │   ├── controllers/
-│   │   ├── aiController.js    # AI microservice status dispatcher
-│   │   ├── authController.js  # Register, Login, GetMe, Logout
-│   │   └── userController.js  # GetProfile, UpdateProfile
+│   │   ├── aiController.js        # AI microservice status dispatcher
+│   │   ├── authController.js      # Register, Login, GetMe, Logout
+│   │   ├── resumeController.js    # Upload, Get, Download, Delete resume
+│   │   └── userController.js      # GetProfile, UpdateProfile
 │   ├── middleware/
 │   │   ├── authMiddleware.js      # JWT & Cookie verification
 │   │   ├── errorMiddleware.js     # Centralized error handler
 │   │   ├── notFoundMiddleware.js  # 404 handler
-│   │   └── rateLimitMiddleware.js # Brute-force rate limiter
+│   │   ├── rateLimitMiddleware.js # Brute-force rate limiter
+│   │   └── uploadMiddleware.js    # Multer 5MB PDF memory parser
 │   ├── models/
+│   │   ├── Resume.js          # Mongoose Resume schema & sanitization
 │   │   └── User.js            # Mongoose User schema & bcrypt hooks
 │   ├── routes/
 │   │   ├── aiRoutes.js        # /api/ai endpoints
 │   │   ├── authRoutes.js      # /api/auth endpoints
+│   │   ├── resumeRoutes.js    # /api/resumes endpoints
 │   │   └── userRoutes.js      # /api/users endpoints
 │   ├── services/
-│   │   ├── aiService.js       # Node.js-to-FastAPI fetch client & timeout
-│   │   └── tokenService.js    # JWT generation & cookie helpers
+│   │   ├── aiService.js           # Node.js-to-FastAPI fetch client & timeout
+│   │   ├── resumeParserService.js # Rule-based resume text parser
+│   │   ├── resumeService.js       # PDF validation, text extraction & disk I/O
+│   │   └── tokenService.js        # JWT generation & cookie helpers
 │   ├── utils/
 │   │   └── generateToken.js   # JWT & cookie configuration
 │   ├── tests/
+│   │   ├── helpers/
+│   │   │   └── pdfHelper.js   # Synthetic PDF generator for isolated tests
 │   │   ├── ai.test.js         # AI communication test suite (5 tests)
-│   │   └── auth.test.js       # Authentication & security test suite (21 tests)
+│   │   ├── auth.test.js       # Authentication & security test suite (21 tests)
+│   │   └── resume.test.js     # Resume upload & parsing test suite (16 tests)
 │   ├── app.js                 # Express app initialization
 │   ├── server.js              # Server entry point
 │   ├── package.json
@@ -237,6 +257,7 @@ JWT_SECRET=your_super_secret_jwt_key_at_least_32_characters_long
 JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 AI_SERVICE_URL=http://127.0.0.1:8000
+RESUME_STORAGE_PATH=./uploads/resumes
 NODE_ENV=development
 ```
 
@@ -381,6 +402,15 @@ The AI microservice starts on `http://localhost:8000`.
 | `GET`  | `/api/users/profile` | Protected | Get authenticated user profile | *None (Cookie or Bearer token)* |
 | `PUT`  | `/api/users/profile` | Protected | Update full name (email is locked) | `{ fullName }` |
 
+#### Resume Management Endpoints (`/api/resumes`)
+
+| Method | Endpoint | Access | Description | Request Body / Parameters |
+|--------|----------|--------|-------------|---------------------------|
+| `POST` | `/api/resumes/upload` | Protected | Upload PDF resume, extract raw text, and parse structured fields | `multipart/form-data` with `resume` (PDF file, max 5MB) |
+| `GET`  | `/api/resumes` | Protected | Get authenticated user's active resume and parsed details | *None (Cookie or Bearer token)* |
+| `GET`  | `/api/resumes/download` | Protected | Download candidate's stored resume PDF | *None (Cookie or Bearer token)* |
+| `DELETE` | `/api/resumes` | Protected | Delete resume database record and unlink file from disk | *None (Cookie or Bearer token)* |
+
 #### AI Microservice Gateway Endpoints (`/api/ai`)
 
 | Method | Endpoint | Access | Description |
@@ -474,7 +504,7 @@ cd backend
 npm test
 ```
 
-### Verified Test Results (2 Suites, 26 Passed, 0 Failed, 0 Skipped):
+### Verified Test Results (3 Suites, 42 Passed, 0 Failed, 0 Skipped):
 
 ```
 ▶ CareerLens AI - Node.js to FastAPI Communication Layer
@@ -509,9 +539,28 @@ npm test
   ✔ Scenario 8: Verify that logout returns the correct cookie-clearing instructions
 ✔ CareerLens AI - Backend Authentication & Integration Suite (21 tests passed)
 
-ℹ tests 26
-ℹ suites 2
-ℹ pass 26
+▶ CareerLens AI - Phase 2 Resume Upload & Parsing Suite
+  ✔ 1. Rejects unauthenticated POST /api/resumes/upload with 401
+  ✔ 2. Rejects unauthenticated GET /api/resumes with 401
+  ✔ 3. Rejects unauthenticated GET /api/resumes/download with 401
+  ✔ 4. Rejects unauthenticated DELETE /api/resumes with 401
+  ✔ 5. Rejects upload when no file is attached with 400
+  ✔ 6. Rejects non-PDF files (.txt or text/plain) with 400
+  ✔ 7. Rejects files with .pdf extension but invalid/corrupted magic bytes with 400
+  ✔ 8. Rejects PDF with no extractable text with 400
+  ✔ 9. Successfully uploads valid PDF, extracts text, and parses structured fields (201)
+  ✔ 10. GET /api/resumes returns null when user has not uploaded a resume
+  ✔ 11. GET /api/resumes returns active resume details after upload
+  ✔ 12. GET /api/resumes/download returns original PDF binary with appropriate headers
+  ✔ 13. User B cannot access or download User A resume (cross-user isolation)
+  ✔ 14. Uploading a new resume replaces existing record and cleans up old file from disk
+  ✔ 15. DELETE /api/resumes removes database record and deletes file from disk
+  ✔ 16. Gracefully handles resume with missing optional sections without errors
+✔ CareerLens AI - Phase 2 Resume Upload & Parsing Suite (16 tests passed)
+
+ℹ tests 42
+ℹ suites 3
+ℹ pass 42
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
@@ -569,12 +618,13 @@ python -c "from fastapi.testclient import TestClient; from app.main import app; 
 
 ## Roadmap (Future Phases)
 
-- **Phase 2**: Resume Parsing & ATS Intelligence Engine (FastAPI + NLP)
-- **Phase 3**: Semantic Job Matching & Relevance Scoring
-- **Phase 4**: Skill Gap Diagnostics & Course Recommendation Pathways
-- **Phase 5**: Dynamic Multi-Year Career Roadmaps & Trajectory Projections
-- **Phase 6**: AI Behavioral & Technical Mock Interview Simulator
-- **Phase 7**: Analytics Dashboard & Exportable Resume Optimizer
+- [x] **Phase 1**: Foundation, Project Architecture & Authentication (Completed)
+- [x] **Phase 2**: Resume Upload, Text Extraction & Rule-Based Parsing (Completed)
+- [ ] **Phase 3**: Semantic Job Matching & Relevance Scoring
+- [ ] **Phase 4**: Skill Gap Diagnostics & Course Recommendation Pathways
+- [ ] **Phase 5**: Dynamic Multi-Year Career Roadmaps & Trajectory Projections
+- [ ] **Phase 6**: AI Behavioral & Technical Mock Interview Simulator
+- [ ] **Phase 7**: Analytics Dashboard & Exportable Resume Optimizer
 
 ---
 

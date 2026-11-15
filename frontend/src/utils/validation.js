@@ -77,3 +77,33 @@ export const validatePasswordMatch = (password, confirmPassword) => {
   return '';
 };
 
+export const validateResumeFile = (file) => {
+  if (!file) {
+    return 'Please select a PDF file to upload.';
+  }
+
+  const isPdfMime = file.type === 'application/pdf';
+  const isPdfExt = file.name && file.name.toLowerCase().endsWith('.pdf');
+
+  if (!isPdfMime && !isPdfExt) {
+    return 'Only PDF documents (.pdf) are supported.';
+  }
+
+  const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+  if (file.size > MAX_SIZE) {
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    return `File size (${sizeMb} MB) exceeds the maximum allowed limit of 5 MB.`;
+  }
+
+  return '';
+};
+
+export const formatFileSize = (bytes) => {
+  if (!bytes || bytes <= 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+};
+
+

@@ -28,10 +28,9 @@ const navigationItems = [
   },
   {
     name: 'Resume Analysis',
-    href: '#resume-analysis',
+    href: '/dashboard#resume-section',
     icon: FileText,
-    isAvailable: false,
-    badge: 'Coming Soon',
+    isAvailable: true,
   },
   {
     name: 'Job Matching',
@@ -128,7 +127,15 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar, isCollapsed, toggleCollapse
                 <NavLink
                   key={item.name}
                   to={item.href}
-                  onClick={() => closeMobileSidebar()}
+                  onClick={() => {
+                    closeMobileSidebar();
+                    if (item.href.includes('#resume-section')) {
+                      setTimeout(() => {
+                        const el = document.getElementById('resume-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }, 50);
+                    }
+                  }}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
@@ -172,11 +179,11 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar, isCollapsed, toggleCollapse
           <div className={`p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-500 ${isCollapsed ? 'text-center' : ''}`}>
             {!isCollapsed ? (
               <>
-                <div className="font-semibold text-slate-700">Phase 1 Foundation</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">Architecture & Auth Live</div>
+                <div className="font-semibold text-slate-700">Phase 2 Live</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Resume Intelligence Active</div>
               </>
             ) : (
-              <div className="font-bold text-slate-700">v1.0</div>
+              <div className="font-bold text-slate-700">v2.0</div>
             )}
           </div>
         </div>
