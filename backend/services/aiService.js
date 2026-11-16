@@ -10,6 +10,11 @@ const {
   runFallbackCareerRecommendations,
   runFallbackLearningRoadmap,
 } = require('./fallbackJobMatcher');
+const {
+  runFallbackQuestionGeneration,
+  runFallbackAnswerEvaluation,
+  runFallbackReportGeneration,
+} = require('./fallbackInterviewService');
 
 const DEFAULT_AI_SERVICE_URL = 'http://127.0.0.1:8000';
 const DEFAULT_TIMEOUT_MS = 5000;
@@ -509,6 +514,252 @@ const generateLearningRoadmap = async (resumeData, jobDescription, jobTitle, com
 };
 
 /**
+ * Generate interview questions via FastAPI with fallback
+ */
+const generateInterviewQuestions = async (params, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/interview/generate-questions`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const payload = {
+      role: params.role,
+      custom_role: params.customRole || null,
+      interview_type: params.interviewType || 'Technical Interview',
+      difficulty: params.difficulty || 'Intermediate',
+      total_questions: Number(params.totalQuestions) || 5,
+      resume_data: params.resumeData || null,
+      job_description: params.jobDescription || null,
+      job_title: params.jobTitle || null,
+      company_name: params.companyName || null,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        role: data.role || params.role,
+        interviewType: data.interview_type || params.interviewType,
+        difficulty: data.difficulty || params.difficulty,
+        totalQuestions: data.total_questions || (data.questions ? data.questions.length : 5),
+        questions: (data.questions || []).map((q, idx) => ({
+          questionId: q.question_id || q.questionId || `q_${idx + 1}`,
+          questionText: q.question_text || q.questionText,
+          category: q.category,
+          difficulty: q.difficulty,
+          topic: q.topic || 'General',
+          order: q.order || idx + 1,
+          expectedConcepts: q.expected_concepts || q.expectedConcepts || [],
+          evaluationCriteria: q.evaluation_criteria || q.evaluationCriteria || [],
+          sampleAnswer: q.sample_answer || q.sampleAnswer || '',
+          status: 'pending',
+        })),
+        provider: data.provider || 'fastapi-ai-engine',
+      };
+    }
+
+    return runFallbackQuestionGeneration(params);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackQuestionGeneration(params);
+  }
+};
+
+/**
+ * Evaluate student answer via FastAPI with fallback
+ */
+const evaluateInterviewAnswer = async (params, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/interview/evaluate-answer`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const payload = {
+      question_id: params.questionId,
+      question_text: params.questionText,
+      category: params.category || 'technical',
+      difficulty: params.difficulty || 'Intermediate',
+      topic: params.topic || 'General',
+      expected_concepts: params.expectedConcepts || [],
+      evaluation_criteria: params.evaluationCriteria || [],
+      sample_answer: params.sampleAnswer || null,
+      answer: params.answer || '',
+      role: params.role || 'Software Developer',
+      resume_data: params.resumeData || null,
+      job_description: params.jobDescription || null,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        overallScore: data.overall_score ?? data.overallScore ?? 0,
+        performanceLabel: data.performance_label || data.performanceLabel || 'Needs Improvement',
+        criterionScores: data.criterion_scores || data.criterionScores || {},
+        strengths: data.strengths || [],
+        weaknesses: data.weaknesses || [],
+        missingConcepts: data.missing_concepts || data.missingConcepts || [],
+        incorrectConcepts: data.incorrect_concepts || data.incorrectConcepts || [],
+        improvementSuggestions: data.improvement_suggestions || data.improvementSuggestions || [],
+        improvedSampleAnswer: data.improved_sample_answer || data.improvedSampleAnswer || '',
+        explanation: data.explanation || '',
+        provider: data.provider || 'fastapi-ai-engine',
+        evaluatedAt: new Date(),
+      };
+    }
+
+    return runFallbackAnswerEvaluation(params);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackAnswerEvaluation(params);
+  }
+};
+
+/**
+ * Flattens Mongoose question documents into plain JSON-serializable objects with flattened Map structures
+ */
+const flattenQuestionsForReport = (questions) => {
+  if (!Array.isArray(questions)) return [];
+  return questions.map((q) => {
+    const rawQ = q && typeof q.toObject === 'function' ? q.toObject({ flattenMaps: true }) : { ...q };
+    if (rawQ && rawQ.evaluation) {
+      let cs = rawQ.evaluation.criterionScores || rawQ.evaluation.criterion_scores;
+      if (cs instanceof Map) {
+        cs = Object.fromEntries(cs.entries());
+      } else if (cs && typeof cs === 'object' && cs !== null) {
+        cs = { ...cs };
+      } else {
+        cs = {};
+      }
+      rawQ.evaluation.criterionScores = cs;
+      rawQ.evaluation.criterion_scores = cs;
+    }
+    return rawQ;
+  });
+};
+
+/**
+ * Normalizes criterion keys in performance breakdown to standard camelCase
+ */
+const normalizePerformanceBreakdown = (rawBreakdown) => {
+  if (!rawBreakdown) return {};
+  const entries = rawBreakdown instanceof Map
+    ? Array.from(rawBreakdown.entries())
+    : typeof rawBreakdown === 'object' && rawBreakdown !== null
+      ? Object.entries(rawBreakdown)
+      : [];
+
+  const mapKey = (k) => {
+    const s = String(k || '').trim();
+    const map = {
+      technical_accuracy: 'technicalAccuracy',
+      technicalAccuracy: 'technicalAccuracy',
+      'technical accuracy': 'technicalAccuracy',
+      relevance: 'relevance',
+      completeness: 'completeness',
+      clarity: 'clarity',
+      structure_and_communication: 'structureAndCommunication',
+      structureAndCommunication: 'structureAndCommunication',
+      structure: 'structureAndCommunication',
+      examples_and_specificity: 'examplesAndSpecificity',
+      examplesAndSpecificity: 'examplesAndSpecificity',
+      examples: 'examplesAndSpecificity',
+    };
+    return map[s] || s;
+  };
+
+  const normalized = {};
+  for (const [key, val] of entries) {
+    if (val === null || val === undefined || isNaN(val)) continue;
+    const canonical = mapKey(key);
+    normalized[canonical] = Math.round(Number(val));
+  }
+  return normalized;
+};
+
+/**
+ * Generate final interview performance report via FastAPI with fallback
+ */
+const generateInterviewReport = async (params, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/interview/generate-report`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  const sanitizedQuestions = flattenQuestionsForReport(params.questions || []);
+
+  try {
+    const payload = {
+      role: params.role,
+      interview_type: params.interviewType,
+      difficulty: params.difficulty,
+      questions: sanitizedQuestions,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        overallScore: data.overall_score ?? data.overallScore ?? 0,
+        performanceLabel: data.performance_label || data.performanceLabel || 'Needs Improvement',
+        completionPercentage: data.completion_percentage ?? data.completionPercentage ?? 0,
+        totalQuestions: data.total_questions ?? data.totalQuestions ?? 0,
+        answeredQuestions: data.answered_questions ?? data.answeredQuestions ?? 0,
+        skippedQuestions: data.skipped_questions ?? data.skippedQuestions ?? 0,
+        performanceBreakdown: normalizePerformanceBreakdown(
+          data.performance_breakdown || data.performanceBreakdown
+        ),
+        strengths: data.strengths || [],
+        weaknesses: data.weaknesses || [],
+        recommendations: data.recommendations || [],
+        readinessAssessment: data.readiness_assessment || data.readinessAssessment || '',
+        provider: data.provider || 'fastapi-ai-engine',
+      };
+    }
+
+    return runFallbackReportGeneration({ ...params, questions: sanitizedQuestions });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackReportGeneration({ ...params, questions: sanitizedQuestions });
+  }
+};
+
+/**
  * Get normalized base URL for the FastAPI AI microservice
  * @returns {string} Clean base URL without trailing slashes
  */
@@ -614,5 +865,8 @@ module.exports = {
   normalizeJobMatchResponse,
   normalizeCareerRecommendationsResponse,
   normalizeRoadmapResponse,
+  generateInterviewQuestions,
+  evaluateInterviewAnswer,
+  generateInterviewReport,
 };
 

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.health import router as health_router
 from app.routes.analysis import router as analysis_router
 from app.routes.job import router as job_router
+from app.routes.interview import router as interview_router
 
 # Load environment variables
 env_path = Path(__file__).resolve().parent.parent / ".env"
@@ -42,6 +43,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(analysis_router)
 app.include_router(job_router)
+app.include_router(interview_router)
 
 # Root endpoint redirecting to health check or welcome
 @app.get("/", tags=["Root"])

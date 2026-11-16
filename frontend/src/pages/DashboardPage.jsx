@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -12,15 +12,46 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  MessageSquareCode,
+  Award,
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import ResumeSection from '../components/resume/ResumeSection';
+import interviewService from '../services/interviewService';
 
 const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [interviews, setInterviews] = useState([]);
+  const [isLoadingInterviews, setIsLoadingInterviews] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchInterviewStats = async () => {
+      try {
+        const res = await interviewService.getInterviews();
+        if (isMounted && res?.success && res.interviews) {
+          setInterviews(res.interviews);
+        }
+      } catch {
+        // Soft fallback
+      } finally {
+        if (isMounted) setIsLoadingInterviews(false);
+      }
+    };
+
+    fetchInterviewStats();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const totalInterviews = interviews.length;
+  const completedInterviews = interviews.filter((i) => i.status === 'completed');
+  const latestInterview = completedInterviews.length > 0 ? completedInterviews[0] : (interviews.length > 0 ? interviews[0] : null);
 
   // Format date helper
   const formatDate = (isoString) => {
@@ -66,7 +97,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Quick Overview Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1: Auth Status */}
         <Card className="flex items-start gap-4 border-slate-200">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
@@ -105,7 +136,7 @@ const DashboardPage = () => {
         </Card>
 
         {/* Card 3: Resume Intelligence */}
-        <Card className="flex items-start gap-4 border-slate-200 sm:col-span-2 lg:col-span-1">
+        <Card className="flex items-start gap-4 border-slate-200">
           <div className="w-12 h-12 rounded-xl bg-blue-50 text-brand-primary flex items-center justify-center flex-shrink-0">
             <FileCheck2 className="w-6 h-6" />
           </div>
@@ -120,6 +151,34 @@ const DashboardPage = () => {
             <p className="text-xs text-slate-500">
               Rule-based skills & section extraction active
             </p>
+          </div>
+        </Card>
+
+        {/* Card 4: AI Mock Interview (Phase 5) */}
+        <Card className="flex items-start gap-4 border-slate-200">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+            <MessageSquareCode className="w-6 h-6" />
+          </div>
+          <div className="space-y-1 flex-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Mock Interviews
+            </span>
+            <div className="text-lg font-bold text-slate-900 flex items-center justify-between">
+              <span>{totalInterviews} Session{totalInterviews === 1 ? '' : 's'}</span>
+              {latestInterview?.overallScore != null && (
+                <span className="text-xs font-extrabold text-emerald-600 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
+                  {latestInterview.overallScore}/100
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate(totalInterviews > 0 ? '/interview-history' : '/mock-interview')}
+              className="text-xs text-brand-primary font-semibold hover:underline flex items-center gap-1 pt-0.5"
+            >
+              <span>{totalInterviews > 0 ? 'View History' : 'Start First Session'}</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
         </Card>
       </div>

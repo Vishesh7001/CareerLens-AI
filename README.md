@@ -2,15 +2,20 @@
 
 > **"Your Career. Your Potential. Your Future."**
 
-CareerLens AI is an enterprise-grade, full-stack platform engineered to empower modern job seekers with advanced AI analytics, deep resume intelligence, skill gap identification, and precision career path mapping.
+CareerLens AI is an enterprise-grade, full-stack platform engineered to empower modern job seekers, college students, and freshers with advanced AI analytics, deep resume intelligence, skill gap identification, precision career path mapping, and text-based mock interview preparation.
 
-This repository represents **Phase 1: Foundation, Project Architecture & Authentication** and **Phase 2: Resume Upload & Parsing**.
+This repository represents **Phase 1: Foundation, Project Architecture & Authentication**, **Phase 2: Resume Upload & Parsing**, **Phase 3: AI Resume Analysis**, **Phase 4: Intelligent Job Matching & Career Intelligence**, and **Phase 5: AI-Powered Text-Based Mock Interview System**.
 
 ---
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Phase 1 Objectives & Deliverables](#phase-1-objectives--deliverables)
+2. [Phases & Deliverables](#phases--deliverables)
+   - [Phase 1: Foundation & Authentication](#phase-1-foundation--authentication)
+   - [Phase 2: Resume Upload & Parsing](#phase-2-resume-upload--parsing)
+   - [Phase 3: AI-Powered Resume Analysis](#phase-3-ai-powered-resume-analysis)
+   - [Phase 4: Job Matching & Career Intelligence](#phase-4-job-matching--career-intelligence)
+   - [Phase 5: AI-Powered Text-Based Mock Interview System](#phase-5-ai-powered-text-based-mock-interview-system)
 3. [Technology Stack](#technology-stack)
 4. [Architecture Overview](#architecture-overview)
 5. [Monorepo Directory Structure](#monorepo-directory-structure)
@@ -18,49 +23,94 @@ This repository represents **Phase 1: Foundation, Project Architecture & Authent
 7. [Environment Variables Setup](#environment-variables-setup)
 8. [MongoDB Atlas Setup Guide](#mongodb-atlas-setup-guide)
 9. [Step-by-Step Installation & Running Guide](#step-by-step-installation--running-guide)
-   - [Running the Express Backend](#1-running-the-express-backend)
-   - [Running the React Frontend](#2-running-the-react-frontend)
-   - [Running the FastAPI AI Microservice](#3-running-the-fastapi-ai-microservice)
+   - [Running All Services (Concurrently)](#quick-start-single-command--runs-all-services)
+   - [Running Services Independently](#alternative-running-services-independently)
 10. [API Endpoint Documentation](#api-endpoint-documentation)
-11. [Authentication & Security Flow](#authentication--security-flow)
-12. [Testing & Verification](#testing--verification)
-13. [Troubleshooting Guide](#troubleshooting-guide)
-14. [Roadmap (Future Phases)](#roadmap-future-phases)
+    - [Authentication APIs (`/api/auth`)](#authentication-endpoints-apiauth)
+    - [User Profile APIs (`/api/users`)](#user-profile-endpoints-apiusers)
+    - [Resume Management APIs (`/api/resumes`)](#resume-management-endpoints-apiresumes)
+    - [Resume Analysis APIs (`/api/analysis`)](#resume-analysis-endpoints-apianalysis)
+    - [Job Matching & Career Intelligence APIs (`/api/jobs`, `/api/matches`, `/api/career-paths`, `/api/roadmaps`)](#job-matching--career-intelligence-endpoints)
+    - [Mock Interview APIs (`/api/interviews`)](#mock-interview-endpoints-apiinterviews)
+    - [FastAPI AI Microservice APIs](#fastapi-ai-microservice-apis-httplocalhost8000)
+11. [Interview Rubric & Evaluation System](#interview-rubric--evaluation-system)
+12. [Authentication & Security Flow](#authentication--security-flow)
+13. [Testing & Verification](#testing--verification)
+14. [Troubleshooting Guide](#troubleshooting-guide)
+15. [Roadmap](#roadmap)
 
 ---
 
 ## Project Overview
 
-CareerLens AI transforms how professionals navigate their career trajectories. By unifying high-performance web engineering with microservice-driven AI analytics, CareerLens AI provides candidates with deep ATS-aligned resume reviews, real-time market skill gap diagnostics, and hyper-personalized career roadmaps.
+CareerLens AI transforms how candidates navigate their career trajectories. By unifying high-performance web engineering with microservice-driven AI analytics, CareerLens AI provides candidates with ATS-aligned resume reviews, real-time market skill gap diagnostics, hyper-personalized career roadmaps, and realistic, interactive text-based technical and HR mock interviews.
 
-Phase 1 establishes the rock-solid architectural core:
-- A responsive, SaaS-style **React (Vite) + Tailwind CSS** frontend.
-- A secure **Express.js + Node.js** main application backend with HTTP-only cookie JWT authentication and MongoDB Atlas persistence.
-- An independent **FastAPI + Python** AI microservice ready to receive machine learning models in subsequent phases.
-- A production-conscious **Node.js-to-FastAPI communication layer** using native `fetch()` and `AbortController` timeout management.
+Key platform pillars:
+- **Responsive SaaS Frontend**: Modern, accessible React (Vite) + Tailwind CSS dashboard with dark/light themes, real-time feedback, and intuitive candidate workflows.
+- **Secure Express.js Backend**: Robust Node.js/Express gateway enforcing strict HTTP-only cookie JWT auth, data sanitization, user isolation, and resilient transparent fallbacks.
+- **Python FastAPI AI Microservice**: Modular high-speed microservice delivering ATS scoring, semantic job matching, customized interview question synthesis, and multi-factor rubric evaluations.
+- **Resilient Offline Architecture**: Every AI module operates seamlessly with or without external AI service availability through deterministic, rule-based fallback engines.
 
 ---
 
-## Phase 1 & 2 Objectives & Deliverables
+## Phases & Deliverables
 
 ### Phase 1: Foundation & Authentication
 - [x] **Monorepo Architecture**: Clean separation between `frontend/`, `backend/`, and `ai-service/`.
-- [x] **Authentication Engine**: Bcrypt password encryption (salt factor 12), JWT issuance, HTTP-only cookies (preventing client-side token exposure via XSS), and `SameSite` attribute controls paired with CORS origin whitelisting.
+- [x] **Authentication Engine**: Bcrypt password hashing (salt factor 12), JWT issuance, HTTP-only cookies (preventing client-side token exposure via XSS), and `SameSite` attribute controls paired with CORS origin whitelisting.
 - [x] **Node.js-to-FastAPI Communication**: Built-in `fetch()` proxy layer with `AbortController` timeout handling, safe error classification, and Express route `GET /api/ai/health`.
 - [x] **Protected Routes**: Client-side route guards and server-side middleware verifying active sessions across page reloads.
-- [x] **MongoDB Integration**: Robust Mongoose schemas, unique email index, field validation, and connection error handling.
-- [x] **User Profile Management**: Authenticated users can view details and update their name; email remains locked in Phase 1 for credential integrity.
-- [x] **FastAPI Microservice**: Standalone service featuring CORS, OpenAPI/Swagger documentation, and a monitored `/health` endpoint.
-- [x] **Responsive UI/UX**: Full desktop sidebar, tablet collapsible mode, mobile drawer navigation, single-column responsive auth forms, and touch-friendly controls without unnecessary visual clutter.
+- [x] **User Profile Management**: Authenticated users can view and update their profile with field validations.
 
 ### Phase 2: Resume Upload & Parsing
-- [x] **Secure PDF Resume Upload**: Drag-and-drop and browse interface, client & server file type validation (.pdf), 5MB size limit, magic byte validation (`%PDF-`).
+- [x] **Secure PDF Resume Upload**: Drag-and-drop interface, client & server file type validation (.pdf), 5MB size limit, magic byte validation (`%PDF-`).
 - [x] **Isolated Disk Storage**: Configurable `RESUME_STORAGE_PATH` with automatic user directory isolation, safe cleanup on replace/delete, path traversal prevention.
-- [x] **Robust PDF Text Extraction**: Unpooled `Uint8Array` memory handling for Node.js memory pools, multi-page extraction, blank/corrupted PDF rejection.
-- [x] **Rule-Based Resume Parser**: Modular regex/pattern classification across 6 structured categories (Personal Info, Skills in 5 subcategories, Work Experience, Education, Projects, Certifications).
-- [x] **MongoDB Resume Schema**: User association (`user: req.user._id`), metadata persistence, parsed data indexing, and `toJSON` stripping internal server paths.
-- [x] **Frontend Resume Management**: Dedicated dashboard resume section, upload dropzone with progress bar, parsed resume view with categorized skill badges, download & replace controls, delete confirmation.
-- [x] **Automated Testing Suite**: 42 automated integration and unit tests across 3 test suites covering authentication, session lifecycle, security boundaries, rate limiting, AI microservice communication, and complete resume upload/parsing workflows.
+- [x] **Robust PDF Text Extraction**: Unpooled memory handling, multi-page extraction, blank/corrupted PDF rejection.
+- [x] **Rule-Based Resume Parser**: Modular regex/pattern classification across 6 structured categories (Personal Info, Technical Skills, Work Experience, Education, Projects, Certifications).
+- [x] **Phone Number Parser**: Full support for Indian formats (+91, spaced, hyphenated, 10-digit continuous) with zero digit loss and protection against false positives.
+
+### Phase 3: AI-Powered Resume Analysis
+- [x] **Comprehensive ATS Scoring**: Multi-factor scoring evaluating Technical Skills (30%), Experience (25%), Projects (20%), Education (15%), and Formatting (10%).
+- [x] **Actionable Strengths & Weaknesses**: Identification of high-impact accomplishments, missing technical proficiencies, and structural improvements.
+- [x] **Dual AI & Fallback Engine**: FastAPI NLP-based evaluation backed by an automatic deterministic Node.js fallback analyzer.
+
+### Phase 4: Job Matching & Career Intelligence
+- [x] **Job Description Management**: Create, edit, list, and delete target job postings.
+- [x] **Intelligent Skill Gap Matching**: Weighted 35/25/15/15/10 rubric comparing candidate profile to job requirements with normalized semantic skill mapping.
+- [x] **Primary & Alternative Career Paths**: Personalized career trajectories tailored for students and freshers.
+- [x] **Personalized 4-Week Learning Roadmaps**: Actionable weekly learning modules with interactive, persistent completion tracking (0%, 25%, 50%, 75%, 100%).
+
+### Phase 5: AI-Powered Text-Based Mock Interview System
+- [x] **Flexible Interview Configuration**:
+  - 11 pre-configured roles (Full Stack, Frontend, Backend, AI/ML, Data Analyst, DevOps, Mobile, QA, Cloud, Cybersecurity, Product Management) + Custom Role support.
+  - Round Types: Technical, Behavioral / HR, or Mixed.
+  - Difficulty Levels: Beginner (Junior/Fresher), Intermediate, Advanced.
+  - Question Counts: 3, 5, or 7 questions.
+  - Resume & Job Description Context Integration: Dynamic question tailoring based on candidate's uploaded resume and saved target jobs.
+- [x] **Strict Security & Anti-Cheat Protections**:
+  - Questions in `pending` state strictly omit `expectedConcepts`, `evaluationCriteria`, and `sampleAnswer` in all API responses.
+  - User isolation guarantees: candidates can only view, answer, or delete their own interview sessions.
+  - Completed interviews are locked against subsequent edits or submissions.
+  - Input validations: answers must be between 10 and 4,000 characters.
+- [x] **Multi-Dimensional Answer Evaluation**:
+  - **Technical Rubric**: Technical Accuracy (40%), Relevance (25%), Completeness (20%), Clarity (15%).
+  - **HR / Behavioral Rubric**: Relevance (25%), Clarity (25%), Completeness (20%), Structure & STAR method (15%), Real-World Examples (15%).
+  - Specific feedback per answer: Identified Strengths, Areas for Improvement, Missing Key Concepts, Actionable Tips, and a Benchmark Sample Answer with a copy button.
+- [x] **Interactive Active Interview Room**:
+  - Live character/word counter with minimum length indicators.
+  - Autosave / draft answer capability to prevent loss of work during typing.
+  - Retry evaluation on failed/stalled evaluations.
+  - Exit modal with confirmation and progress preservation.
+- [x] **Comprehensive Interview Performance Report**:
+  - Overall Performance Score (0–100) and Readiness Assessment (Ready, Near Ready, Needs Practice).
+  - Average rubric scores with visual progress meters.
+  - Consolidated Strengths & Priority Improvement Areas.
+  - Collapsible question-by-question breakdown showing candidate answers, scores, feedback, missing concepts, and ideal answers.
+- [x] **Session History & KPI Analytics**:
+  - Complete history view with status tags, question counts, difficulty badges, and date filters.
+  - Summary KPI cards on Dashboard and History pages (Total Sessions, Completed Sessions, Average Score, Top Role).
+- [x] **Transparent Dual-Engine Fallback**:
+  - High-performance FastAPI evaluation service (`fastapi-ai-engine`) with deterministic JavaScript fallback engine (`rule-based-fallback`) ensuring 100% uptime even without external network/API keys.
 
 ---
 
@@ -73,16 +123,15 @@ Phase 1 establishes the rock-solid architectural core:
 - **HTTP Client**: Axios (configured with `withCredentials: true`)
 - **Icons**: Lucide React
 
-### Main Application Backend
+### Backend (Main Application Server)
 - **Runtime**: Node.js (v18+)
 - **Framework**: Express.js
 - **Database**: MongoDB Atlas via Mongoose ORM
 - **Authentication**: JSON Web Tokens (`jsonwebtoken`) & HTTP-only cookies (`cookie-parser`)
 - **Security & Password Hashing**: `bcryptjs`, `express-rate-limit`, CORS origin whitelist
-- **Microservice Communication**: Node.js native `fetch()` with `AbortController`
-- **Environment**: `dotenv`
+- **Microservice Communication**: Node.js native `fetch()` with `AbortController` timeout management
 
-### AI Backend Microservice
+### AI Microservice
 - **Runtime**: Python 3.10+
 - **Framework**: FastAPI
 - **ASGI Server**: Uvicorn
@@ -98,17 +147,19 @@ Phase 1 establishes the rock-solid architectural core:
                       │          React Frontend (Vite)         │
                       │  - Tailwind CSS SaaS Dashboard         │
                       │  - AuthContext & Axios Interceptors    │
+                      │  - Interactive Mock Interview Room     │
                       │  - Port: 5173                          │
                       └──────────────────┬─────────────────────┘
                                          │
-                   HTTP-Only Cookie /    │   CORS Credentials
-                   REST API Calls        │   (JSON)
+                    HTTP-Only Cookie /   │   CORS Credentials
+                    REST API Calls       │   (JSON)
                                          ▼
                       ┌────────────────────────────────────────┐
                       │       Node.js / Express Backend        │
                       │  - Authentication & Session Gateway    │
                       │  - Rate Limiting & User Management     │
-                      │  - AI Gateway Proxy Service            │
+                      │  - Interview Session State Controller  │
+                      │  - Fallback Engine (Transparent Fail)  │
                       │  - Port: 5000                          │
                       └───────┬────────────────────────┬───────┘
                               │                        │
@@ -117,9 +168,10 @@ Phase 1 establishes the rock-solid architectural core:
        ┌───────────────────────────────┐               ▼
        │         MongoDB Atlas         │    ┌───────────────────────────────────┐
        │  - Clustered Database Storage │    │      FastAPI AI Microservice      │
-       │  - Unique Index & User Models │    │  - High-Speed Python ASGI Service │
-       └───────────────────────────────┘    │  - Health Endpoint & Swagger Docs │
-                                            │  - Port: 8000                     │
+       │  - Users, Resumes, Analyses   │    │  - High-Speed Python ASGI Service │
+       │  - Jobs, Matches, Roadmaps    │    │  - Question Synthesis & Bank      │
+       │  - InterviewSessions Model    │    │  - Multi-Factor Rubric Evaluator  │
+       └───────────────────────────────┘    │  - Port: 8000                     │
                                             └───────────────────────────────────┘
 ```
 
@@ -128,23 +180,20 @@ Phase 1 establishes the rock-solid architectural core:
 ## Monorepo Directory Structure
 
 ```
-CareerLens-Ai/
+CareerLens-AI/
 ├── .env.example              # Root environment template
 ├── .gitignore                # Global git ignore configuration
 ├── package.json              # Monorepo management scripts
-├── README.md                 # Complete documentation
+├── README.md                 # Complete project documentation
 │
 ├── frontend/                 # React (Vite) Client
-│   ├── public/
-│   │   ├── favicon.svg
-│   │   └── logo.svg
 │   ├── src/
-│   │   ├── assets/
 │   │   ├── components/
 │   │   │   ├── common/       # Button, Input, Card, LoadingSpinner
 │   │   │   ├── layout/       # Navbar, Footer, Sidebar, Topbar, DashboardLayout
-│   │   │   └── resume/       # ResumeSection, ResumeUploadCard, ParsedResumeView
-│   │   ├── context/          # AuthContext (login, register, logout, session persistence)
+│   │   │   ├── resume/       # ResumeSection, ResumeUploadCard, ParsedResumeView
+│   │   │   └── interview/    # AnswerEvaluationCard, InterviewReportView
+│   │   ├── context/          # AuthContext (session persistence, login, logout)
 │   │   ├── hooks/            # useAuth hook
 │   │   ├── pages/
 │   │   │   ├── LandingPage.jsx
@@ -152,86 +201,103 @@ CareerLens-Ai/
 │   │   │   ├── RegisterPage.jsx
 │   │   │   ├── DashboardPage.jsx
 │   │   │   ├── ProfilePage.jsx
+│   │   │   ├── ResumeAnalysisPage.jsx
+│   │   │   ├── JobMatchingPage.jsx
+│   │   │   ├── CareerPathsPage.jsx
+│   │   │   ├── LearningRoadmapPage.jsx
+│   │   │   ├── InterviewSetupPage.jsx    # [Phase 5] Interview configuration
+│   │   │   ├── ActiveInterviewPage.jsx   # [Phase 5] Interactive interview room
+│   │   │   ├── InterviewReportPage.jsx   # [Phase 5] Full performance report
+│   │   │   ├── InterviewHistoryPage.jsx  # [Phase 5] Historical sessions & KPIs
 │   │   │   └── NotFoundPage.jsx
-│   │   ├── routes/
-│   │   │   └── ProtectedRoute.jsx
 │   │   ├── services/
-│   │   │   ├── api.js           # Axios instance with credentials
-│   │   │   ├── authService.js   # API calls for auth and user profile
-│   │   │   └── resumeService.js # Resume upload, retrieval, download, delete
-│   │   ├── utils/
-│   │   │   └── validation.js    # Form & resume file validation, size formatting
-│   │   ├── App.jsx              # Route definitions
-│   │   ├── main.jsx             # Entry point
-│   │   └── index.css            # Tailwind base directives
-│   ├── index.html
-│   ├── package.json
-│   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   ├── vite.config.js
-│   └── .env.example
+│   │   │   ├── api.js                   # Axios instance with credentials
+│   │   │   ├── authService.js
+│   │   │   ├── resumeService.js
+│   │   │   ├── analysisService.js
+│   │   │   ├── jobMatchingService.js
+│   │   │   └── interviewService.js      # [Phase 5] Interview API client
+│   │   ├── App.jsx                      # Route definitions
+│   │   └── main.jsx
 │
 ├── backend/                  # Express.js Application Server
 │   ├── config/
-│   │   └── db.js              # MongoDB Atlas connection handler
+│   │   └── db.js                        # MongoDB Atlas connection handler
 │   ├── controllers/
-│   │   ├── aiController.js        # AI microservice status dispatcher
-│   │   ├── authController.js      # Register, Login, GetMe, Logout
-│   │   ├── resumeController.js    # Upload, Get, Download, Delete resume
-│   │   └── userController.js      # GetProfile, UpdateProfile
+│   │   ├── aiController.js
+│   │   ├── authController.js
+│   │   ├── resumeController.js
+│   │   ├── userController.js
+│   │   ├── analysisController.js
+│   │   ├── jobMatchingController.js
+│   │   └── interviewController.js       # [Phase 5] Interview session controller
 │   ├── middleware/
-│   │   ├── authMiddleware.js      # JWT & Cookie verification
-│   │   ├── errorMiddleware.js     # Centralized error handler
-│   │   ├── notFoundMiddleware.js  # 404 handler
-│   │   ├── rateLimitMiddleware.js # Brute-force rate limiter
-│   │   └── uploadMiddleware.js    # Multer 5MB PDF memory parser
+│   │   ├── authMiddleware.js
+│   │   ├── errorMiddleware.js
+│   │   └── uploadMiddleware.js
 │   ├── models/
-│   │   ├── Resume.js          # Mongoose Resume schema & sanitization
-│   │   └── User.js            # Mongoose User schema & bcrypt hooks
+│   │   ├── User.js
+│   │   ├── Resume.js
+│   │   ├── ResumeAnalysis.js
+│   │   ├── JobDescription.js
+│   │   ├── JobMatchResult.js
+│   │   ├── LearningRoadmap.js
+│   │   └── InterviewSession.js          # [Phase 5] Embedded question & rubric schema
 │   ├── routes/
-│   │   ├── aiRoutes.js        # /api/ai endpoints
-│   │   ├── authRoutes.js      # /api/auth endpoints
-│   │   ├── resumeRoutes.js    # /api/resumes endpoints
-│   │   └── userRoutes.js      # /api/users endpoints
+│   │   ├── aiRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── resumeRoutes.js
+│   │   ├── userRoutes.js
+│   │   ├── analysisRoutes.js
+│   │   ├── jobMatchingRoutes.js
+│   │   └── interviewRoutes.js           # [Phase 5] /api/interviews endpoints
 │   ├── services/
-│   │   ├── aiService.js           # Node.js-to-FastAPI fetch client & timeout
-│   │   ├── resumeParserService.js # Rule-based resume text parser
-│   │   ├── resumeService.js       # PDF validation, text extraction & disk I/O
-│   │   └── tokenService.js        # JWT generation & cookie helpers
-│   ├── utils/
-│   │   └── generateToken.js   # JWT & cookie configuration
+│   │   ├── aiService.js                 # Microservice dispatcher with timeout & fallback
+│   │   ├── resumeParserService.js
+│   │   ├── resumeService.js
+│   │   ├── tokenService.js
+│   │   ├── fallbackAnalysisService.js
+│   │   ├── fallbackInterviewService.js  # [Phase 5] Deterministic interview engine
+│   │   ├── jobMatchingService.js
+│   │   └── roadmapService.js
 │   ├── tests/
-│   │   ├── helpers/
-│   │   │   └── pdfHelper.js   # Synthetic PDF generator for isolated tests
-│   │   ├── ai.test.js         # AI communication test suite (5 tests)
-│   │   ├── auth.test.js       # Authentication & security test suite (21 tests)
-│   │   └── resume.test.js     # Resume upload & parsing test suite (16 tests)
-│   ├── app.js                 # Express app initialization
-│   ├── server.js              # Server entry point
-│   ├── package.json
-│   └── .env.example
+│   │   ├── ai.test.js                   # Node-to-FastAPI proxy suite (5 tests)
+│   │   ├── analysis.test.js             # Resume analysis suite (12 tests)
+│   │   ├── auth.test.js                 # Authentication & security suite (22 tests)
+│   │   ├── interview.test.js            # [Phase 5] Mock interview suite (8 tests)
+│   │   ├── jobMatching.test.js          # Job matching & roadmap suite (11 tests)
+│   │   └── resume.test.js               # Resume upload & parsing suite (27 tests)
+│   └── app.js
 │
 └── ai-service/               # FastAPI AI Microservice
     ├── app/
     │   ├── routes/
-    │   │   ├── __init__.py
-    │   │   └── health.py      # GET /health endpoint
+    │   │   ├── health.py
+    │   │   ├── analysis.py
+    │   │   ├── matching.py
+    │   │   └── interview.py             # [Phase 5] /interview/* FastAPI endpoints
     │   ├── schemas/
-    │   │   ├── __init__.py
-    │   │   └── health.py      # Pydantic response models
-    │   ├── services/          # Future AI modules
-    │   ├── __init__.py
-    │   └── main.py            # FastAPI app & CORS setup
-    ├── requirements.txt
-    ├── .env.example
-    └── README.md
+    │   │   ├── health.py
+    │   │   ├── analysis.py
+    │   │   ├── matching.py
+    │   │   └── interview.py             # [Phase 5] Pydantic models for interview
+    │   ├── services/
+    │   │   ├── analyzer.py
+    │   │   ├── matcher.py
+    │   │   ├── question_bank.py         # [Phase 5] Catalog across 11 roles & STAR HR
+    │   │   └── interview_service.py     # [Phase 5] Q synthesis & rubric evaluator
+    │   └── main.py
+    └── tests/
+        ├── test_health.py
+        ├── test_analysis.py
+        ├── test_matching.py
+        └── test_interview.py            # [Phase 5] AI Service test suite (11 tests)
 ```
 
 ---
 
 ## Prerequisites
 
-Ensure you have the following installed on your host system:
 - **Node.js**: v18.0.0 or higher (Tested on Node.js v24.21.0)
 - **npm**: v9.0.0 or higher (Tested on npm 11.19.0)
 - **Python**: v3.10 or higher (Tested on Python 3.14.7)
@@ -241,15 +307,7 @@ Ensure you have the following installed on your host system:
 
 ## Environment Variables Setup
 
-### 1. Root / Monorepo
-Create a `.env` file from the example in the project root:
-```bash
-copy .env.example .env    # Windows
-cp .env.example .env      # Linux/macOS
-```
-
-### 2. Backend (`backend/.env`)
-Create `backend/.env` with your actual MongoDB connection string, JWT secret, and microservice URL:
+### 1. Backend (`backend/.env`)
 ```env
 PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.example.mongodb.net/careerlens?retryWrites=true&w=majority
@@ -261,14 +319,12 @@ RESUME_STORAGE_PATH=./uploads/resumes
 NODE_ENV=development
 ```
 
-### 3. Frontend (`frontend/.env`)
-Create `frontend/.env`:
+### 2. Frontend (`frontend/.env`)
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
-### 4. AI Service (`ai-service/.env`)
-Create `ai-service/.env`:
+### 3. AI Service (`ai-service/.env`)
 ```env
 AI_SERVICE_PORT=8000
 NODE_ENV=development
@@ -276,355 +332,174 @@ NODE_ENV=development
 
 ---
 
-## MongoDB Atlas Setup Guide
-
-To connect the backend to MongoDB Atlas:
-
-1. **Sign in to MongoDB Atlas**: Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) and log in.
-2. **Create a Cluster**:
-   - Choose the free **M0 Sandbox** tier.
-   - Select your preferred cloud provider and region.
-3. **Configure Database User**:
-   - Under **Security** > **Database Access**, click **Add New Database User**.
-   - Choose **Password** authentication.
-   - Enter a username and secure password (e.g. `careerlens_admin`).
-   - Grant the role **Read and write to any database**.
-4. **Configure Network Access**:
-   - Under **Security** > **Network Access**, click **Add IP Address**.
-   - **Recommended:** Click **Add Current IP Address** to restrict cluster access exclusively to your workstation's IP address.
-   - *Note on dynamic IP environments:* If your local development environment has a frequently rotating IP address, `0.0.0.0/0` (Allow Access from Anywhere) can be used as a temporary fallback, but restricting to specific IPs or CIDR blocks is the recommended security best practice.
-5. **Get Connection String**:
-   - Go to **Database Deployments** > Click **Connect** on your cluster.
-   - Select **Drivers** (Node.js).
-   - Copy the connection string (format: `mongodb+srv://<username>:<password>@cluster0.xxx.mongodb.net/careerlens?retryWrites=true&w=majority`).
-6. **Paste into `backend/.env`**:
-   - Replace `<username>` and `<password>` with your database user credentials.
-
----
-
 ## Step-by-Step Installation & Running Guide
 
 ### Quick Start (Single Command — Runs All Services)
 
-To launch the entire CareerLens AI platform (React Frontend, Express Backend, and FastAPI AI Microservice) simultaneously with unified colored logs and clean process termination:
-
-1. **Install Root Dependencies**:
-   ```bash
-   npm install
-   ```
-
-2. **Start All Services**:
-   ```bash
-   npm run dev
-   ```
-
-This command uses `concurrently` to launch all three services in parallel:
-- **`[frontend]`**: React Vite development server at `http://localhost:5173`
-- **`[backend]`**: Express Node.js server with nodemon at `http://localhost:5000`
-- **`[ai-service]`**: FastAPI microservice via `ai-service/venv/Scripts/python.exe` at `http://localhost:8000`
-
-Pressing `Ctrl + C` in the terminal stops all three development processes cleanly (`--kill-others`).
-
----
-
-### Alternative: Running Services Independently
-
-You can also run each service independently in separate terminals.
-
-### 1. Running the Express Backend
-
-Open Terminal 1:
+From the project root:
 ```bash
-cd backend
 npm install
 npm run dev
 ```
 
-The backend starts on `http://localhost:5000`.
-- Health Check: `http://localhost:5000/health`
-- API Base: `http://localhost:5000/api`
-- AI Microservice Gateway Health: `http://localhost:5000/api/ai/health`
-
-### 2. Running the React Frontend
-
-Open Terminal 2:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The frontend will start on `http://localhost:5173`.
-Open `http://localhost:5173` in your browser to view the application.
-
-### 3. Running the FastAPI AI Microservice
-
-Open Terminal 3:
-```bash
-cd ai-service
-
-# (Optional but recommended) Create virtual environment
-python -m venv venv
-.\venv\Scripts\activate   # Windows
-# source venv/bin/activate # Linux/macOS
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start the service
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-The AI microservice starts on `http://localhost:8000`.
-- Health Check: `http://localhost:8000/health`
-- Interactive Swagger UI: `http://localhost:8000/docs`
-- ReDoc Documentation: `http://localhost:8000/redoc`
+This concurrently boots:
+- **Frontend**: `http://localhost:5173`
+- **Express Backend**: `http://localhost:5000`
+- **FastAPI Microservice**: `http://localhost:8000`
 
 ---
 
 ## API Endpoint Documentation
 
-### Express Backend APIs (`http://localhost:5000`)
-
-#### Authentication Endpoints (`/api/auth`)
-
-| Method | Endpoint | Access | Description | Request Body |
-|--------|----------|--------|-------------|--------------|
-| `POST` | `/api/auth/register` | Public | Register new user account | `{ fullName, email, password, confirmPassword }` |
-| `POST` | `/api/auth/login` | Public | Authenticate user & issue cookie | `{ email, password, rememberMe }` |
-| `GET`  | `/api/auth/me` | Protected | Verify active session & return user info | *None (Cookie or Bearer token)* |
-| `POST` | `/api/auth/logout` | Public/Protected | Clear auth cookie | *None* |
-
-#### User Profile Endpoints (`/api/users`)
-
-| Method | Endpoint | Access | Description | Request Body |
-|--------|----------|--------|-------------|--------------|
-| `GET`  | `/api/users/profile` | Protected | Get authenticated user profile | *None (Cookie or Bearer token)* |
-| `PUT`  | `/api/users/profile` | Protected | Update full name (email is locked) | `{ fullName }` |
-
-#### Resume Management Endpoints (`/api/resumes`)
-
-| Method | Endpoint | Access | Description | Request Body / Parameters |
-|--------|----------|--------|-------------|---------------------------|
-| `POST` | `/api/resumes/upload` | Protected | Upload PDF resume, extract raw text, and parse structured fields | `multipart/form-data` with `resume` (PDF file, max 5MB) |
-| `GET`  | `/api/resumes` | Protected | Get authenticated user's active resume and parsed details | *None (Cookie or Bearer token)* |
-| `GET`  | `/api/resumes/download` | Protected | Download candidate's stored resume PDF | *None (Cookie or Bearer token)* |
-| `DELETE` | `/api/resumes` | Protected | Delete resume database record and unlink file from disk | *None (Cookie or Bearer token)* |
-
-#### AI Microservice Gateway Endpoints (`/api/ai`)
+### Authentication Endpoints (`/api/auth`)
 
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
-| `GET`  | `/api/ai/health` | Public | Express forwards health probe to FastAPI via `fetch()` with timeout and returns unified status |
+| `POST` | `/api/auth/register` | Public | Register new user account |
+| `POST` | `/api/auth/login` | Public | Authenticate user & issue HTTP-only cookie |
+| `GET`  | `/api/auth/me` | Protected | Return currently logged-in user profile |
+| `POST` | `/api/auth/logout` | Public/Protected | Invalidate session & clear auth cookie |
 
-#### System Health Endpoints
+### Resume Management Endpoints (`/api/resumes`)
 
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
-| `GET`  | `/health` | Public | Backend server health status |
-| `GET`  | `/api/health` | Public | Backend API health status |
+| `POST` | `/api/resumes/upload` | Protected | Upload & parse PDF resume (max 5MB) |
+| `GET`  | `/api/resumes` | Protected | Retrieve authenticated user's active resume |
+| `GET`  | `/api/resumes/download` | Protected | Download user's original stored resume PDF |
+| `DELETE` | `/api/resumes` | Protected | Delete resume and unlink from disk storage |
 
----
+### Resume Analysis Endpoints (`/api/analysis`)
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `POST` | `/api/analysis/:resumeId` | Protected | Run ATS scoring and feedback analysis |
+| `GET`  | `/api/analysis/:resumeId` | Protected | Retrieve stored analysis results |
+| `DELETE` | `/api/analysis/:resumeId` | Protected | Clear stored analysis results |
+
+### Job Matching & Career Intelligence Endpoints
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `POST` | `/api/jobs` | Protected | Create a new target job description |
+| `GET`  | `/api/jobs` | Protected | List all jobs for the current user |
+| `POST` | `/api/matches/analyze` | Protected | Run 35/25/15/15/10 rubric job match |
+| `GET`  | `/api/matches/history` | Protected | Fetch past job match results |
+| `GET`  | `/api/career-paths/recommendations` | Protected | Generate recommended career paths |
+| `POST` | `/api/roadmaps/generate` | Protected | Generate 4-week learning roadmap |
+| `PATCH`| `/api/roadmaps/:roadmapId/progress` | Protected | Update weekly module completion status |
+
+### Mock Interview Endpoints (`/api/interviews`)
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `POST` | `/api/interviews` | Protected | Create new session and generate tailored questions |
+| `GET`  | `/api/interviews` | Protected | List candidate's interview sessions and summary metrics |
+| `GET`  | `/api/interviews/:interviewId` | Protected | Get session state (strips rubric/answers on pending questions) |
+| `DELETE`| `/api/interviews/:interviewId` | Protected | Delete interview session record |
+| `GET`  | `/api/interviews/:interviewId/questions/current` | Protected | Retrieve current active question |
+| `PUT`  | `/api/interviews/:interviewId/questions/:questionId/draft` | Protected | Save in-progress draft answer |
+| `POST` | `/api/interviews/:interviewId/questions/:questionId/submit` | Protected | Submit answer for immediate rubric evaluation |
+| `POST` | `/api/interviews/:interviewId/questions/:questionId/retry` | Protected | Retry evaluation on failed question submission |
+| `POST` | `/api/interviews/:interviewId/questions/:questionId/next` | Protected | Advance to next pending question in session |
+| `POST` | `/api/interviews/:interviewId/complete` | Protected | Finalize interview and generate performance report |
+| `GET`  | `/api/interviews/:interviewId/report` | Protected | Retrieve completed session report |
 
 ### FastAPI AI Microservice APIs (`http://localhost:8000`)
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| `GET`  | `/health` | Public | Microservice health check |
-| `GET`  | `/docs`   | Public | Interactive Swagger UI |
-| `GET`  | `/redoc`  | Public | OpenAPI documentation |
-
-#### Expected Direct Response (`GET http://localhost:8000/health`):
-```json
-{
-  "status": "healthy",
-  "service": "CareerLens AI",
-  "message": "AI service is running"
-}
-```
-
-#### Expected Express Gateway Response (`GET http://localhost:5000/api/ai/health`):
-```json
-{
-  "success": true,
-  "status": "healthy",
-  "message": "AI microservice is healthy and reachable",
-  "aiService": {
-    "status": "healthy",
-    "service": "CareerLens AI",
-    "message": "AI service is running"
-  }
-}
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/health` | Microservice health check probe |
+| `POST` | `/interview/generate-questions` | Synthesize customized questions based on role, difficulty, and resume context |
+| `POST` | `/interview/evaluate-answer` | Evaluate candidate answer using multi-factor rubric |
+| `POST` | `/interview/generate-report` | Compute aggregate session statistics, score breakdown, and readiness |
 
 ---
 
-## Authentication & Security Flow
+## Interview Rubric & Evaluation System
 
-CareerLens AI implements a defense-in-depth security approach combining cookie-based token handling with server-side validations:
+Every submitted candidate answer is evaluated using a weighted multi-criteria rubric:
 
-```
-[User Form] ──(POST /api/auth/login)──▶ [Express Backend]
-                                              │
-                                     (Verify password with bcrypt)
-                                              │
-                                     (Sign JWT with JWT_SECRET)
-                                              │
-[Browser] ◀── Set-Cookie: token=...; HttpOnly; SameSite=Lax ──┘
-    │
-    │  (Subsequent Requests: withCredentials: true)
-    ▼
-[Axios API] ──(GET /api/auth/me)──▶ [authMiddleware]
-                                              │
-                                     (Reads req.cookies.token)
-                                     (Verifies & attaches req.user)
-                                              │
-[React AuthContext] ◀── { user: { id, fullName, email } } ──┘
-```
+### 1. Technical Questions Rubric
+- **Technical Accuracy (40%)**: Correctness of concepts, principles, algorithms, and syntax.
+- **Relevance (25%)**: Directly addresses the specific question prompt without straying off-topic.
+- **Completeness (20%)**: Depth of coverage, edge cases, trade-offs, and architectural considerations.
+- **Clarity & Articulation (15%)**: Professional terminology, logical explanation flow, and concise phrasing.
 
-1. **XSS Protection (HTTP-Only Cookies)**:
-   Authentication tokens are set with the `httpOnly: true` flag. This prevents client-side JavaScript from accessing the raw token via `document.cookie`, mitigating credential theft from Cross-Site Scripting (XSS).
-2. **CSRF Mitigation (SameSite & CORS)**:
-   Cookies are configured with `sameSite: 'lax'` in development and `sameSite: 'none'` with `secure: true` in production over HTTPS. Combined with strict server-side CORS origin checking (`origin: CLIENT_URL`), this prevents unauthorized third-party sites from executing arbitrary authenticated state mutations.
-3. **Password Security**:
-   Passwords are never stored in plain text. They are hashed using `bcryptjs` with 12 salt rounds before database persistence. User queries automatically omit the password hash.
-4. **Brute-Force Rate Limiting**:
-   Authentication routes (`/api/auth/register`, `/api/auth/login`) are protected by `express-rate-limit` to prevent brute-force credential stuffing.
-5. **Session Verification & Refresh**:
-   On page refresh or app reload, `AuthContext` calls `GET /api/auth/me`. The server verifies the cookie and returns the active user profile, maintaining session continuity without manual token handling in localStorage.
+### 2. Behavioral / HR Questions Rubric
+- **Relevance (25%)**: Directly answers the behavioral situational prompt.
+- **Clarity & Communication (25%)**: Well-articulated thought process and tone.
+- **Completeness (20%)**: Addresses what was asked with sufficient detail.
+- **Structure (STAR Method) (15%)**: Situation, Task, Action, Result framework compliance.
+- **Real-World Examples (15%)**: Concrete past experiences and measurable outcomes.
+
+### 3. Final Readiness Classification
+- **Ready for Interviews (Score ≥ 80%)**: Demonstrates solid technical mastery and articulate communication.
+- **Near Ready — Minor Practice Needed (Score 60–79%)**: Good foundation; needs refinement on edge cases and structure.
+- **Needs Practice (Score < 60%)**: Foundational gaps detected; recommends structured review via Learning Roadmaps.
 
 ---
 
 ## Testing & Verification
 
-The project includes an automated test suite executed via the Node.js native test runner (`node:test`) and an in-memory MongoDB server (`MongoMemoryServer`):
+The system includes automated end-to-end test suites across the entire stack:
 
+### 1. Backend Integration & Unit Tests
+Run in the `backend/` directory:
 ```bash
 cd backend
 npm test
 ```
 
-### Verified Test Results (3 Suites, 42 Passed, 0 Failed, 0 Skipped):
+**Verified Test Results (6 Suites, 85 Tests Passed, 0 Failed, 0 Skipped):**
+- `ai.test.js`: Node.js to FastAPI communication layer & timeout resilience (5 tests)
+- `analysis.test.js`: Phase 3 resume analysis, ATS scoring, and isolation (12 tests)
+- `auth.test.js`: Phase 1 authentication, rate limiting, and cookie security (22 tests)
+- `interview.test.js`: Phase 5 mock interview creation, draft autosaving, answer evaluation, question navigation, completion, report generation, user isolation, and CORS (8 tests)
+- `jobMatching.test.js`: Phase 4 job posting, 35/25/15/15/10 match rubric, career paths, and roadmap progress tracking (11 tests)
+- `resume.test.js`: Phase 2 resume upload, magic byte validation, storage isolation, phone number extraction (+91 formats) (27 tests)
 
+### 2. FastAPI AI Service Unit Tests
+Run in the `ai-service/` directory:
+```bash
+cd ai-service
+.\venv\Scripts\python.exe -m unittest discover tests
 ```
-▶ CareerLens AI - Node.js to FastAPI Communication Layer
-  ✔ 1. GET /api/ai/health returns 200 and healthy status when FastAPI is running
-  ✔ 2. GET /api/ai/health returns 503 when FastAPI service is unavailable
-  ✔ 3. checkAiServiceHealth handles timeout via AbortController safely
-  ✔ 4. checkAiServiceHealth handles upstream HTTP error (e.g. 500) safely
-  ✔ 5. checkAiServiceHealth handles invalid JSON response safely
-✔ CareerLens AI - Node.js to FastAPI Communication Layer (5 tests passed)
+**Verified Test Results: 34 Tests Passed, 0 Failed.**
 
-▶ CareerLens AI - Backend Authentication & Integration Suite
-  ✔ 1 & 4. Health Check Endpoint works
-  ✔ Validation: Invalid email format is rejected with 400
-  ✔ Validation: Short password is rejected with 400
-  ✔ Validation: Password mismatch is rejected with 400
-  ✔ 5 & 7. User can register successfully, receives cookie, password is encrypted
-  ✔ 6. Duplicate email registration is rejected with 409 Conflict
-  ✔ 8. User can log in successfully and receive auth cookie
-  ✔ 9. Incorrect password is rejected with 401
-  ✔ 10. Protected routes reject unauthenticated requests with 401
-  ✔ 11, 12 & 15. Authenticated session check via cookie and Bearer header works
-  ✔ 13. User can update their full name, but cannot change email
-  ✔ 14. Logout clears the HTTP-only cookie
-  ✔ 16. Expired JWT sessions are handled gracefully with 401
-  ✔ Scenario 1: Invalid JWT token should return HTTP 401
-  ✔ Scenario 2: Expired JWT token should continue returning HTTP 401 on profile endpoint
-  ✔ Scenario 3: Accessing /api/users/profile without authentication should return HTTP 401
-  ✔ Scenario 4: Accessing /api/auth/me with a token belonging to a non-existent user should return HTTP 401
-  ✔ Scenario 5: API responses must never expose the user's hashed or plain-text password
-  ✔ Scenario 6: Profile update with invalid fullName types (number, object, null) should be rejected safely
-  ✔ Scenario 7: Verify that rate limiting works and returns HTTP 429 after configured limit is exceeded
-  ✔ Scenario 8: Verify that logout returns the correct cookie-clearing instructions
-✔ CareerLens AI - Backend Authentication & Integration Suite (21 tests passed)
-
-▶ CareerLens AI - Phase 2 Resume Upload & Parsing Suite
-  ✔ 1. Rejects unauthenticated POST /api/resumes/upload with 401
-  ✔ 2. Rejects unauthenticated GET /api/resumes with 401
-  ✔ 3. Rejects unauthenticated GET /api/resumes/download with 401
-  ✔ 4. Rejects unauthenticated DELETE /api/resumes with 401
-  ✔ 5. Rejects upload when no file is attached with 400
-  ✔ 6. Rejects non-PDF files (.txt or text/plain) with 400
-  ✔ 7. Rejects files with .pdf extension but invalid/corrupted magic bytes with 400
-  ✔ 8. Rejects PDF with no extractable text with 400
-  ✔ 9. Successfully uploads valid PDF, extracts text, and parses structured fields (201)
-  ✔ 10. GET /api/resumes returns null when user has not uploaded a resume
-  ✔ 11. GET /api/resumes returns active resume details after upload
-  ✔ 12. GET /api/resumes/download returns original PDF binary with appropriate headers
-  ✔ 13. User B cannot access or download User A resume (cross-user isolation)
-  ✔ 14. Uploading a new resume replaces existing record and cleans up old file from disk
-  ✔ 15. DELETE /api/resumes removes database record and deletes file from disk
-  ✔ 16. Gracefully handles resume with missing optional sections without errors
-✔ CareerLens AI - Phase 2 Resume Upload & Parsing Suite (16 tests passed)
-
-ℹ tests 42
-ℹ suites 3
-ℹ pass 42
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-```
-
-To test the frontend production build:
+### 3. Frontend Production Build
+Run in the `frontend/` directory:
 ```bash
 cd frontend
 npm run build
 ```
-Builds cleanly with zero errors.
-
-To test the FastAPI health check directly:
-```bash
-cd ai-service
-python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); res = client.get('/health'); print(res.status_code, res.json())"
-```
+**Verified: Built in ~11s, zero syntax or bundling errors.**
 
 ---
 
 ## Troubleshooting Guide
 
-### 1. MongoDB Connection Fails
-- **Symptom**: `[Database] MongoDB connection failed: connect ECONNREFUSED` or MONGODB_URI error.
-- **Solution**:
-  1. Confirm your `backend/.env` file exists and contains `MONGODB_URI`.
-  2. In MongoDB Atlas, verify your IP address is whitelisted under **Network Access** (use **Add Current IP Address**).
-  3. Verify your database username and password do not contain unencoded special characters.
+### 1. AI Service Not Running
+- If the FastAPI microservice on port 8000 is stopped, CareerLens AI automatically engages its built-in JavaScript fallback engine (`rule-based-fallback`). The user experience remains functional without downtime.
 
-### 2. AI Microservice Returns 503 / 504 on `/api/ai/health`
-- **Symptom**: `GET /api/ai/health` returns `{ "success": false, "status": "unhealthy", "message": "AI microservice is unavailable or unreachable" }`.
-- **Solution**:
-  1. Ensure the FastAPI microservice is running (`uvicorn app.main:app --port 8000`).
-  2. Verify `AI_SERVICE_URL=http://127.0.0.1:8000` is defined in `backend/.env`.
-  3. Check whether port 8000 is accessible from your local terminal via `curl http://127.0.0.1:8000/health`.
+### 2. CORS Errors in Frontend
+- Ensure `CLIENT_URL=http://localhost:5173` is set in `backend/.env`.
+- Ensure frontend calls use `withCredentials: true`.
 
-### 3. CORS Errors in Frontend
-- **Symptom**: `Access to XMLHttpRequest at 'http://localhost:5000/api/...' from origin 'http://localhost:5173' has been blocked by CORS policy`.
-- **Solution**:
-  - Check that `CLIENT_URL=http://localhost:5173` is defined in `backend/.env`.
-  - Ensure `withCredentials: true` is enabled in `frontend/src/services/api.js`.
-
-### 4. Cookies Not Stored in Browser
-- **Symptom**: User logs in but is redirected back to login on refresh.
-- **Solution**:
-  - In development (`NODE_ENV=development`), cookies use `secure: false` and `sameSite: 'lax'`.
-  - Ensure you are accessing frontend at `http://localhost:5173` (do not mix `localhost` and `127.0.0.1` origins).
-
-### 5. FastAPI Port Already in Use
-- **Symptom**: `[Errno 10048] error while attempting to bind on address ('0.0.0.0', 8000)`.
-- **Solution**:
-  - Change `AI_SERVICE_PORT=8001` in `ai-service/.env`, update `AI_SERVICE_URL=http://127.0.0.1:8001` in `backend/.env`, and restart services.
+### 3. Cookie Storage Issues
+- Check that cookies are sent with `sameSite: 'lax'` in development.
+- Always access the application consistently via `http://localhost:5173` (do not interchange with `127.0.0.1`).
 
 ---
 
-## Roadmap (Future Phases)
+## Roadmap
 
 - [x] **Phase 1**: Foundation, Project Architecture & Authentication (Completed)
 - [x] **Phase 2**: Resume Upload, Text Extraction & Rule-Based Parsing (Completed)
-- [ ] **Phase 3**: Semantic Job Matching & Relevance Scoring
-- [ ] **Phase 4**: Skill Gap Diagnostics & Course Recommendation Pathways
-- [ ] **Phase 5**: Dynamic Multi-Year Career Roadmaps & Trajectory Projections
-- [ ] **Phase 6**: AI Behavioral & Technical Mock Interview Simulator
-- [ ] **Phase 7**: Analytics Dashboard & Exportable Resume Optimizer
+- [x] **Phase 3**: AI-Powered Resume Analysis & ATS Scoring (Completed)
+- [x] **Phase 4**: Intelligent Job Matching & Career Intelligence (Completed)
+- [x] **Phase 5**: AI-Powered Text-Based Mock Interview System (Completed)
+- [ ] **Phase 6**: Analytics Dashboard & Exportable Resume Optimizer
 
 ---
 

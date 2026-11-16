@@ -9,6 +9,7 @@ const analysisRoutes = require('./routes/analysisRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const careerRoutes = require('./routes/careerRoutes');
 const roadmapRoutes = require('./routes/roadmapRoutes');
+const interviewRoutes = require('./routes/interviewRoutes');
 const { notFound } = require('./middleware/notFoundMiddleware');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
@@ -75,6 +76,7 @@ app.use('/api/analysis', analysisRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/career', careerRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
+app.use('/api/interviews', interviewRoutes);
 
 // 404 handler
 app.use(notFound);

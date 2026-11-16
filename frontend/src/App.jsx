@@ -10,6 +10,10 @@ import JobsPage from './pages/JobsPage';
 import JobMatchingPage from './pages/JobMatchingPage';
 import CareerRecommendationsPage from './pages/CareerRecommendationsPage';
 import LearningRoadmapPage from './pages/LearningRoadmapPage';
+import InterviewSetupPage from './pages/InterviewSetupPage';
+import ActiveInterviewPage from './pages/ActiveInterviewPage';
+import InterviewReportPage from './pages/InterviewReportPage';
+import InterviewHistoryPage from './pages/InterviewHistoryPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -89,6 +93,46 @@ function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <LearningRoadmapPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-interview"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <InterviewSetupPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-interview/:interviewId"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ActiveInterviewPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-interview/:interviewId/report"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <InterviewReportPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/interview-history"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <InterviewHistoryPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

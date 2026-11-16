@@ -8,6 +8,7 @@ import {
   Compass,
   Map,
   MessageSquareCode,
+  History,
   Settings,
   Sparkles,
   X,
@@ -63,11 +64,16 @@ const navigationItems = [
     isAvailable: true,
   },
   {
-    name: 'Interview Preparation',
-    href: '#interview-prep',
+    name: 'Mock Interview',
+    href: '/mock-interview',
     icon: MessageSquareCode,
-    isAvailable: false,
-    badge: 'Phase 5',
+    isAvailable: true,
+  },
+  {
+    name: 'Interview History',
+    href: '/interview-history',
+    icon: History,
+    isAvailable: true,
   },
   {
     name: 'Settings',
