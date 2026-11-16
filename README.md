@@ -2,9 +2,15 @@
 
 > **"Your Career. Your Potential. Your Future."**
 
-CareerLens AI is an enterprise-grade, full-stack platform engineered to empower modern job seekers, college students, and freshers with advanced AI analytics, deep resume intelligence, skill gap identification, precision career path mapping, and text-based mock interview preparation.
+CareerLens AI is an enterprise-grade, full-stack platform engineered to empower modern job seekers, college students, and freshers with advanced AI analytics, deep resume intelligence, skill gap identification, precision career path mapping, text-based mock interview preparation, and centralized career intelligence.
 
-This repository represents **Phase 1: Foundation, Project Architecture & Authentication**, **Phase 2: Resume Upload & Parsing**, **Phase 3: AI Resume Analysis**, **Phase 4: Intelligent Job Matching & Career Intelligence**, and **Phase 5: AI-Powered Text-Based Mock Interview System**.
+This repository represents the complete platform encompassing:
+- **Phase 1: Foundation, Project Architecture & Authentication**
+- **Phase 2: Resume Upload & Parsing**
+- **Phase 3: AI-Powered Resume Analysis**
+- **Phase 4: Intelligent Job Matching & Career Intelligence**
+- **Phase 5: AI-Powered Text-Based Mock Interview System**
+- **Phase 6: Complete Dashboard Redesign, Career Intelligence & Final Platform Integration**
 
 ---
 
@@ -16,6 +22,7 @@ This repository represents **Phase 1: Foundation, Project Architecture & Authent
    - [Phase 3: AI-Powered Resume Analysis](#phase-3-ai-powered-resume-analysis)
    - [Phase 4: Job Matching & Career Intelligence](#phase-4-job-matching--career-intelligence)
    - [Phase 5: AI-Powered Text-Based Mock Interview System](#phase-5-ai-powered-text-based-mock-interview-system)
+   - [Phase 6: Dashboard Redesign, Career Intelligence & Platform Integration](#phase-6-dashboard-redesign-career-intelligence--platform-integration)
 3. [Technology Stack](#technology-stack)
 4. [Architecture Overview](#architecture-overview)
 5. [Monorepo Directory Structure](#monorepo-directory-structure)
@@ -32,23 +39,29 @@ This repository represents **Phase 1: Foundation, Project Architecture & Authent
     - [Resume Analysis APIs (`/api/analysis`)](#resume-analysis-endpoints-apianalysis)
     - [Job Matching & Career Intelligence APIs (`/api/jobs`, `/api/matches`, `/api/career-paths`, `/api/roadmaps`)](#job-matching--career-intelligence-endpoints)
     - [Mock Interview APIs (`/api/interviews`)](#mock-interview-endpoints-apiinterviews)
+    - [Dashboard & Career Readiness APIs (`/api/dashboard`)](#dashboard--career-readiness-endpoints-apidashboard)
+    - [In-App Notification APIs (`/api/notifications`)](#in-app-notification-endpoints-apinotifications)
     - [FastAPI AI Microservice APIs](#fastapi-ai-microservice-apis-httplocalhost8000)
-11. [Interview Rubric & Evaluation System](#interview-rubric--evaluation-system)
-12. [Authentication & Security Flow](#authentication--security-flow)
-13. [Testing & Verification](#testing--verification)
-14. [Troubleshooting Guide](#troubleshooting-guide)
-15. [Roadmap](#roadmap)
+11. [Career Readiness Scoring & Renormalization Engine](#career-readiness-scoring--renormalization-engine)
+12. [Unified Skill Intelligence Engine](#unified-skill-intelligence-engine)
+13. [Interview Rubric & Evaluation System](#interview-rubric--evaluation-system)
+14. [Authentication & Security Flow](#authentication--security-flow)
+15. [Testing & Verification](#testing--verification)
+16. [Troubleshooting Guide](#troubleshooting-guide)
+17. [Roadmap](#roadmap)
 
 ---
 
 ## Project Overview
 
-CareerLens AI transforms how candidates navigate their career trajectories. By unifying high-performance web engineering with microservice-driven AI analytics, CareerLens AI provides candidates with ATS-aligned resume reviews, real-time market skill gap diagnostics, hyper-personalized career roadmaps, and realistic, interactive text-based technical and HR mock interviews.
+CareerLens AI transforms how candidates navigate their career trajectories. By unifying high-performance web engineering with microservice-driven AI analytics, CareerLens AI provides candidates with ATS-aligned resume reviews, real-time market skill gap diagnostics, hyper-personalized career roadmaps, realistic interactive mock interviews, and a centralized career intelligence hub.
 
 Key platform pillars:
-- **Responsive SaaS Frontend**: Modern, accessible React (Vite) + Tailwind CSS dashboard with dark/light themes, real-time feedback, and intuitive candidate workflows.
+- **Unified Modern SaaS Dashboard**: Accessible, responsive React (Vite) + Tailwind CSS dashboard synthesizing resume metrics, job compatibility, interview scores, and skill progression in one unified view.
+- **Career Readiness Engine**: 5-pillar dynamic weighted evaluation with automatic missing-data weight renormalization preventing zero penalties for fresh profiles.
+- **Unified Skill Intelligence**: Aggregates skills across uploaded resumes, parsed profiles, target job requirements, mock interview question answers, and completed roadmap modules.
 - **Secure Express.js Backend**: Robust Node.js/Express gateway enforcing strict HTTP-only cookie JWT auth, data sanitization, user isolation, and resilient transparent fallbacks.
-- **Python FastAPI AI Microservice**: Modular high-speed microservice delivering ATS scoring, semantic job matching, customized interview question synthesis, and multi-factor rubric evaluations.
+- **Python FastAPI AI Microservice**: High-speed microservice delivering ATS scoring, semantic job matching, customized interview question synthesis, and multi-factor rubric evaluations.
 - **Resilient Offline Architecture**: Every AI module operates seamlessly with or without external AI service availability through deterministic, rule-based fallback engines.
 
 ---
@@ -81,36 +94,31 @@ Key platform pillars:
 - [x] **Personalized 4-Week Learning Roadmaps**: Actionable weekly learning modules with interactive, persistent completion tracking (0%, 25%, 50%, 75%, 100%).
 
 ### Phase 5: AI-Powered Text-Based Mock Interview System
-- [x] **Flexible Interview Configuration**:
-  - 11 pre-configured roles (Full Stack, Frontend, Backend, AI/ML, Data Analyst, DevOps, Mobile, QA, Cloud, Cybersecurity, Product Management) + Custom Role support.
-  - Round Types: Technical, Behavioral / HR, or Mixed.
-  - Difficulty Levels: Beginner (Junior/Fresher), Intermediate, Advanced.
-  - Question Counts: 3, 5, or 7 questions.
-  - Resume & Job Description Context Integration: Dynamic question tailoring based on candidate's uploaded resume and saved target jobs.
-- [x] **Strict Security & Anti-Cheat Protections**:
-  - Questions in `pending` state strictly omit `expectedConcepts`, `evaluationCriteria`, and `sampleAnswer` in all API responses.
-  - User isolation guarantees: candidates can only view, answer, or delete their own interview sessions.
-  - Completed interviews are locked against subsequent edits or submissions.
-  - Input validations: answers must be between 10 and 4,000 characters.
-- [x] **Multi-Dimensional Answer Evaluation**:
-  - **Technical Rubric**: Technical Accuracy (40%), Relevance (25%), Completeness (20%), Clarity (15%).
-  - **HR / Behavioral Rubric**: Relevance (25%), Clarity (25%), Completeness (20%), Structure & STAR method (15%), Real-World Examples (15%).
-  - Specific feedback per answer: Identified Strengths, Areas for Improvement, Missing Key Concepts, Actionable Tips, and a Benchmark Sample Answer with a copy button.
-- [x] **Interactive Active Interview Room**:
-  - Live character/word counter with minimum length indicators.
-  - Autosave / draft answer capability to prevent loss of work during typing.
-  - Retry evaluation on failed/stalled evaluations.
-  - Exit modal with confirmation and progress preservation.
-- [x] **Comprehensive Interview Performance Report**:
-  - Overall Performance Score (0–100) and Readiness Assessment (Ready, Near Ready, Needs Practice).
-  - Average rubric scores with visual progress meters.
-  - Consolidated Strengths & Priority Improvement Areas.
-  - Collapsible question-by-question breakdown showing candidate answers, scores, feedback, missing concepts, and ideal answers.
-- [x] **Session History & KPI Analytics**:
-  - Complete history view with status tags, question counts, difficulty badges, and date filters.
-  - Summary KPI cards on Dashboard and History pages (Total Sessions, Completed Sessions, Average Score, Top Role).
-- [x] **Transparent Dual-Engine Fallback**:
-  - High-performance FastAPI evaluation service (`fastapi-ai-engine`) with deterministic JavaScript fallback engine (`rule-based-fallback`) ensuring 100% uptime even without external network/API keys.
+- [x] **Flexible Interview Configuration**: 11 pre-configured roles + Custom Role, Technical, Behavioral/HR, or Mixed rounds, Beginner/Intermediate/Advanced difficulty, 3/5/7 questions.
+- [x] **Strict Security & Anti-Cheat**: Questions in `pending` state omit rubric concepts, criteria, and answers. User isolation guarantees.
+- [x] **Multi-Dimensional Rubric**: Technical Accuracy (40%), Relevance (25%), Completeness (20%), Clarity (15%) for technical questions; STAR framework & real examples for HR.
+- [x] **Active Interview Room**: Live character/word counters, draft autosaving, retry evaluation, exit modal, and progress preservation.
+- [x] **Performance Report & History**: Overall score, readiness tier (Ready, Near Ready, Needs Practice), rubric breakdown, collapsible question review, and session KPIs.
+
+### Phase 6: Dashboard Redesign, Career Intelligence & Platform Integration
+- [x] **Complete Dashboard Redesign**: Modern, polished SaaS interface integrating all phases into a cohesive student career hub.
+- [x] **Personalized Welcome & Quick Actions**: Dynamic greeting based on time of day, candidate profile summary, readiness dial, and deep-link quick actions.
+- [x] **6 Key Performance Indicator (KPI) Metric Cards**:
+  1. Overall Career Readiness Score
+  2. Resume ATS Score (with target delta)
+  3. Target Job Match Rate
+  4. Mock Interview Performance
+  5. Learning Roadmap Completion Rate
+  6. Verified Skills Count
+- [x] **Career Readiness Score Engine**: 5 weighted pillars with dynamic weight renormalization for missing data and 4-tier readiness classification.
+- [x] **5 Career Development Pillars Tracking**: Visual status cards for Resume, Job Matching, Roadmap, Interview Prep, and Verified Skills.
+- [x] **Unified Skill Intelligence**: 5 categorized tabs (`Strong Skills`, `Needs Improvement`, `Missing Required`, `Frequently Required`, `Recently Improved`) with cross-phase evidence levels.
+- [x] **Career Progress Analytics**: Interactive responsive SVG time-series charts for Mock Interview Trend, Job Match Compatibility, and Resume ATS Score Progression without external heavy libraries.
+- [x] **Personalized Actionable Recommendations**: Synthesizes candidate state into prioritized recommendation cards with one-click deep navigation.
+- [x] **Chronological Recent Activity Feed**: Unified audit trail of resume uploads, analyses, job matches, roadmap progress, and mock interviews.
+- [x] **Preserved Phase 2 Resume Management Dropzone**: Original resume upload, parser preview, and PDF download accessible at `/dashboard#resume-section`.
+- [x] **In-App Persistent Notifications**: Notification center with topbar bell, unread badge counter, slideover drawer, mark read, mark all read, and delete endpoints.
+- [x] **Reorganized 4-Section Sidebar Navigation**: `OVERVIEW`, `CAREER DEVELOPMENT`, `INTERVIEW PREPARATION`, and `ACCOUNT`.
 
 ---
 
@@ -122,6 +130,7 @@ Key platform pillars:
 - **Routing**: React Router DOM v6
 - **HTTP Client**: Axios (configured with `withCredentials: true`)
 - **Icons**: Lucide React
+- **Visuals & Charts**: Pure Native Responsive SVG charts
 
 ### Backend (Main Application Server)
 - **Runtime**: Node.js (v18+)
@@ -145,9 +154,10 @@ Key platform pillars:
 ```
                       ┌────────────────────────────────────────┐
                       │          React Frontend (Vite)         │
-                      │  - Tailwind CSS SaaS Dashboard         │
-                      │  - AuthContext & Axios Interceptors    │
-                      │  - Interactive Mock Interview Room     │
+                      │  - Redesigned SaaS Dashboard           │
+                      │  - Career Readiness & SVG Charts       │
+                      │  - Unified Skill Intelligence Hub      │
+                      │  - Notification Center & Topbar Bell   │
                       │  - Port: 5173                          │
                       └──────────────────┬─────────────────────┘
                                          │
@@ -157,22 +167,23 @@ Key platform pillars:
                       ┌────────────────────────────────────────┐
                       │       Node.js / Express Backend        │
                       │  - Authentication & Session Gateway    │
-                      │  - Rate Limiting & User Management     │
-                      │  - Interview Session State Controller  │
+                      │  - Career Readiness Engine (Dynamic Wt)│
+                      │  - Unified Skill Intelligence Service  │
+                      │  - In-App Notification Controller      │
                       │  - Fallback Engine (Transparent Fail)  │
                       │  - Port: 5000                          │
                       └───────┬────────────────────────┬───────┘
-                              │                        │
-                 Mongoose ODM │ (TLS Encrypted)        │ Node.js fetch()
-                              ▼                        │ (AbortController Timeout)
-       ┌───────────────────────────────┐               ▼
-       │         MongoDB Atlas         │    ┌───────────────────────────────────┐
-       │  - Clustered Database Storage │    │      FastAPI AI Microservice      │
-       │  - Users, Resumes, Analyses   │    │  - High-Speed Python ASGI Service │
-       │  - Jobs, Matches, Roadmaps    │    │  - Question Synthesis & Bank      │
-       │  - InterviewSessions Model    │    │  - Multi-Factor Rubric Evaluator  │
-       └───────────────────────────────┘    │  - Port: 8000                     │
-                                            └───────────────────────────────────┘
+                               │                        │
+                  Mongoose ODM │ (TLS Encrypted)        │ Node.js fetch()
+                               ▼                        │ (AbortController Timeout)
+        ┌───────────────────────────────┐               ▼
+        │         MongoDB Atlas         │    ┌───────────────────────────────────┐
+        │  - Clustered Database Storage │    │      FastAPI AI Microservice      │
+        │  - Users, Resumes, Analyses   │    │  - High-Speed Python ASGI Service │
+        │  - Jobs, Matches, Roadmaps    │    │  - Question Synthesis & Bank      │
+        │  - InterviewSessions Model    │    │  - Multi-Factor Rubric Evaluator  │
+        │  - Notification Model         │    │  - Port: 8000                     │
+        └───────────────────────────────┘    └───────────────────────────────────┘
 ```
 
 ---
@@ -190,7 +201,11 @@ CareerLens-AI/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── common/       # Button, Input, Card, LoadingSpinner
-│   │   │   ├── layout/       # Navbar, Footer, Sidebar, Topbar, DashboardLayout
+│   │   │   ├── layout/       # Navbar, Footer, Sidebar (4 sections), Topbar, DashboardLayout
+│   │   │   ├── notifications/# [Phase 6] NotificationBell, NotificationPanel
+│   │   │   ├── dashboard/    # [Phase 6] WelcomeSection, OverviewStats, CareerReadinessCard,
+│   │   │   │                 #           CareerProgressCard, SkillIntelligenceCard,
+│   │   │   │                 #           AnalyticsCharts, CareerRecommendations, RecentActivity
 │   │   │   ├── resume/       # ResumeSection, ResumeUploadCard, ParsedResumeView
 │   │   │   └── interview/    # AnswerEvaluationCard, InterviewReportView
 │   │   ├── context/          # AuthContext (session persistence, login, logout)
@@ -199,16 +214,16 @@ CareerLens-AI/
 │   │   │   ├── LandingPage.jsx
 │   │   │   ├── LoginPage.jsx
 │   │   │   ├── RegisterPage.jsx
-│   │   │   ├── DashboardPage.jsx
+│   │   │   ├── DashboardPage.jsx         # [Phase 6] Complete Redesigned Dashboard
 │   │   │   ├── ProfilePage.jsx
 │   │   │   ├── ResumeAnalysisPage.jsx
 │   │   │   ├── JobMatchingPage.jsx
 │   │   │   ├── CareerPathsPage.jsx
 │   │   │   ├── LearningRoadmapPage.jsx
-│   │   │   ├── InterviewSetupPage.jsx    # [Phase 5] Interview configuration
-│   │   │   ├── ActiveInterviewPage.jsx   # [Phase 5] Interactive interview room
-│   │   │   ├── InterviewReportPage.jsx   # [Phase 5] Full performance report
-│   │   │   ├── InterviewHistoryPage.jsx  # [Phase 5] Historical sessions & KPIs
+│   │   │   ├── InterviewSetupPage.jsx
+│   │   │   ├── ActiveInterviewPage.jsx
+│   │   │   ├── InterviewReportPage.jsx
+│   │   │   ├── InterviewHistoryPage.jsx
 │   │   │   └── NotFoundPage.jsx
 │   │   ├── services/
 │   │   │   ├── api.js                   # Axios instance with credentials
@@ -216,7 +231,9 @@ CareerLens-AI/
 │   │   │   ├── resumeService.js
 │   │   │   ├── analysisService.js
 │   │   │   ├── jobMatchingService.js
-│   │   │   └── interviewService.js      # [Phase 5] Interview API client
+│   │   │   ├── interviewService.js
+│   │   │   ├── dashboardService.js      # [Phase 6] Dashboard & analytics client
+│   │   │   └── notificationService.js   # [Phase 6] Notifications API client
 │   │   ├── App.jsx                      # Route definitions
 │   │   └── main.jsx
 │
@@ -230,7 +247,9 @@ CareerLens-AI/
 │   │   ├── userController.js
 │   │   ├── analysisController.js
 │   │   ├── jobMatchingController.js
-│   │   └── interviewController.js       # [Phase 5] Interview session controller
+│   │   ├── interviewController.js
+│   │   ├── dashboardController.js       # [Phase 6] Dashboard overview, readiness, skills
+│   │   └── notificationController.js    # [Phase 6] Notifications CRUD controller
 │   ├── middleware/
 │   │   ├── authMiddleware.js
 │   │   ├── errorMiddleware.js
@@ -242,7 +261,8 @@ CareerLens-AI/
 │   │   ├── JobDescription.js
 │   │   ├── JobMatchResult.js
 │   │   ├── LearningRoadmap.js
-│   │   └── InterviewSession.js          # [Phase 5] Embedded question & rubric schema
+│   │   ├── InterviewSession.js
+│   │   └── Notification.js              # [Phase 6] User notifications schema
 │   ├── routes/
 │   │   ├── aiRoutes.js
 │   │   ├── authRoutes.js
@@ -250,23 +270,29 @@ CareerLens-AI/
 │   │   ├── userRoutes.js
 │   │   ├── analysisRoutes.js
 │   │   ├── jobMatchingRoutes.js
-│   │   └── interviewRoutes.js           # [Phase 5] /api/interviews endpoints
+│   │   ├── interviewRoutes.js
+│   │   ├── dashboardRoutes.js           # [Phase 6] /api/dashboard routes
+│   │   └── notificationRoutes.js        # [Phase 6] /api/notifications routes
 │   ├── services/
-│   │   ├── aiService.js                 # Microservice dispatcher with timeout & fallback
+│   │   ├── aiService.js
 │   │   ├── resumeParserService.js
 │   │   ├── resumeService.js
 │   │   ├── tokenService.js
 │   │   ├── fallbackAnalysisService.js
-│   │   ├── fallbackInterviewService.js  # [Phase 5] Deterministic interview engine
+│   │   ├── fallbackInterviewService.js
 │   │   ├── jobMatchingService.js
-│   │   └── roadmapService.js
+│   │   ├── roadmapService.js
+│   │   ├── careerReadinessService.js    # [Phase 6] Readiness score & renormalization
+│   │   ├── dashboardService.js          # [Phase 6] Unified aggregation services
+│   │   └── notificationService.js       # [Phase 6] Async notification trigger helper
 │   ├── tests/
 │   │   ├── ai.test.js                   # Node-to-FastAPI proxy suite (5 tests)
 │   │   ├── analysis.test.js             # Resume analysis suite (12 tests)
 │   │   ├── auth.test.js                 # Authentication & security suite (22 tests)
-│   │   ├── interview.test.js            # [Phase 5] Mock interview suite (8 tests)
+│   │   ├── interview.test.js            # Mock interview suite (9 tests)
 │   │   ├── jobMatching.test.js          # Job matching & roadmap suite (11 tests)
-│   │   └── resume.test.js               # Resume upload & parsing suite (27 tests)
+│   │   ├── resume.test.js               # Resume upload & parsing suite (27 tests)
+│   │   └── dashboard.test.js            # [Phase 6] Dashboard & notifications suite (9 tests)
 │   └── app.js
 │
 └── ai-service/               # FastAPI AI Microservice
@@ -275,23 +301,23 @@ CareerLens-AI/
     │   │   ├── health.py
     │   │   ├── analysis.py
     │   │   ├── matching.py
-    │   │   └── interview.py             # [Phase 5] /interview/* FastAPI endpoints
+    │   │   └── interview.py
     │   ├── schemas/
     │   │   ├── health.py
     │   │   ├── analysis.py
     │   │   ├── matching.py
-    │   │   └── interview.py             # [Phase 5] Pydantic models for interview
+    │   │   └── interview.py
     │   ├── services/
     │   │   ├── analyzer.py
     │   │   ├── matcher.py
-    │   │   ├── question_bank.py         # [Phase 5] Catalog across 11 roles & STAR HR
-    │   │   └── interview_service.py     # [Phase 5] Q synthesis & rubric evaluator
+    │   │   ├── question_bank.py
+    │   │   └── interview_service.py
     │   └── main.py
     └── tests/
         ├── test_health.py
         ├── test_analysis.py
         ├── test_matching.py
-        └── test_interview.py            # [Phase 5] AI Service test suite (11 tests)
+        └── test_interview.py            # AI Service test suite (35 unit tests)
 ```
 
 ---
@@ -405,6 +431,26 @@ This concurrently boots:
 | `POST` | `/api/interviews/:interviewId/complete` | Protected | Finalize interview and generate performance report |
 | `GET`  | `/api/interviews/:interviewId/report` | Protected | Retrieve completed session report |
 
+### Dashboard & Career Readiness Endpoints (`/api/dashboard`)
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `GET`  | `/api/dashboard/overview` | Protected | Returns 6 KPI stats, welcome summary, and quick metrics |
+| `GET`  | `/api/dashboard/career-readiness` | Protected | Returns overall readiness score, category breakdowns, weights, and classification |
+| `GET`  | `/api/dashboard/skill-intelligence` | Protected | Returns cross-phase aggregated skills across 5 distinct categories |
+| `GET`  | `/api/dashboard/analytics` | Protected | Returns time-series data for interviews, job matches, and resume scores |
+| `GET`  | `/api/dashboard/recommendations` | Protected | Returns personalized, prioritized actionable career suggestions |
+| `GET`  | `/api/dashboard/activities` | Protected | Returns chronological audit trail of all candidate actions |
+
+### In-App Notification Endpoints (`/api/notifications`)
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `GET`  | `/api/notifications` | Protected | Retrieve user's notifications (supports `?limit=20` and returns `unreadCount`) |
+| `PATCH`| `/api/notifications/:id/read` | Protected | Mark a single notification as read |
+| `PATCH`| `/api/notifications/read-all` | Protected | Mark all user notifications as read |
+| `DELETE`| `/api/notifications/:id` | Protected | Delete a notification |
+
 ### FastAPI AI Microservice APIs (`http://localhost:8000`)
 
 | Method | Endpoint | Description |
@@ -413,6 +459,63 @@ This concurrently boots:
 | `POST` | `/interview/generate-questions` | Synthesize customized questions based on role, difficulty, and resume context |
 | `POST` | `/interview/evaluate-answer` | Evaluate candidate answer using multi-factor rubric |
 | `POST` | `/interview/generate-report` | Compute aggregate session statistics, score breakdown, and readiness |
+
+---
+
+## Career Readiness Scoring & Renormalization Engine
+
+The **Career Readiness Score** provides candidates with an objective, data-backed assessment of their overall employability.
+
+### 1. Five Foundation Pillars & Nominal Weights
+
+| Pillar | Base Weight | Data Source |
+|--------|-------------|-------------|
+| **Resume Quality** | 20% | ATS score from Phase 3 resume analysis |
+| **Job Compatibility** | 25% | Latest/Average match score from Phase 4 job descriptions |
+| **Technical Skills** | 20% | Ratio of verified skills vs. market target benchmark (target: 10 skills) |
+| **Learning Progress** | 15% | Average completion percentage across active Phase 4 learning roadmaps |
+| **Interview Performance** | 20% | Average score across completed Phase 5 mock interview sessions |
+
+### 2. Dynamic Weight Renormalization (Missing Data Handling)
+
+College students and fresh accounts often begin with only a subset of activities completed (e.g., they have uploaded a resume, but have not yet taken an interview). To prevent unfair score penalization (assigning 0% for unattempted pillars):
+
+$$\text{Career Readiness Score} = \frac{\sum_{i \in \text{Available}} S_i \times W_i}{\sum_{i \in \text{Available}} W_i}$$
+
+Where:
+- $S_i$ is the raw percentage score $(0–100)$ for category $i$.
+- $W_i$ is the nominal base weight for category $i$.
+- If no categories have data yet, the baseline score defaults to `0` with classification `Getting Started`.
+
+### 3. Readiness Classifications
+
+- **Highly Prepared (Score ≥ 80%)**: Candidate exhibits exceptional alignment across resume, skills, and mock interviews.
+- **Progressing Well (Score 65–79%)**: Solid core capabilities; recommended to complete active roadmap modules and run targeted interviews.
+- **Developing Skills (Score 50–64%)**: Foundation established; targeted skill acquisition and resume optimization advised.
+- **Getting Started (Score < 50%)**: Early preparation phase; guided through uploading a resume and analyzing first job target.
+
+---
+
+## Unified Skill Intelligence Engine
+
+Rather than displaying isolated skill tags, the Unified Skill Intelligence Engine synthesizes candidate capabilities across all phases:
+
+```
+      Phase 2 Resume Extraction ────┐
+      Phase 3 ATS Analysis ─────────┼──► [Skill Normalization] ──► Unified Skill Intelligence
+      Phase 4 Job Matching ─────────┤                                 ├── Strong Skills
+      Phase 5 Mock Interviews ──────┘                                 ├── Needs Improvement
+                                                                      ├── Missing Required
+                                                                      ├── Frequently Required
+                                                                      └── Recently Improved
+```
+
+### Categorization Logic:
+1. **Strong Skills**: Verified in the resume AND evaluated with high proficiency ($\ge 70\%$) during mock interviews.
+2. **Needs Improvement**: Required by target jobs OR tested in interviews with scores $< 70\%$.
+3. **Missing Required**: Explicitly identified as missing required competencies in Phase 4 target job match analyses.
+4. **Frequently Required**: High-demand skills recurring across multiple target job postings.
+5. **Recently Improved**: Skills covered in recently completed learning roadmap modules.
 
 ---
 
@@ -433,16 +536,11 @@ Every submitted candidate answer is evaluated using a weighted multi-criteria ru
 - **Structure (STAR Method) (15%)**: Situation, Task, Action, Result framework compliance.
 - **Real-World Examples (15%)**: Concrete past experiences and measurable outcomes.
 
-### 3. Final Readiness Classification
-- **Ready for Interviews (Score ≥ 80%)**: Demonstrates solid technical mastery and articulate communication.
-- **Near Ready — Minor Practice Needed (Score 60–79%)**: Good foundation; needs refinement on edge cases and structure.
-- **Needs Practice (Score < 60%)**: Foundational gaps detected; recommends structured review via Learning Roadmaps.
-
 ---
 
 ## Testing & Verification
 
-The system includes automated end-to-end test suites across the entire stack:
+The platform maintains automated test suites across all layers of the monorepo:
 
 ### 1. Backend Integration & Unit Tests
 Run in the `backend/` directory:
@@ -451,11 +549,12 @@ cd backend
 npm test
 ```
 
-**Verified Test Results (6 Suites, 85 Tests Passed, 0 Failed, 0 Skipped):**
+**Verified Test Results (7 Test Suites, 95 Tests Passed, 0 Failed, 0 Skipped):**
 - `ai.test.js`: Node.js to FastAPI communication layer & timeout resilience (5 tests)
 - `analysis.test.js`: Phase 3 resume analysis, ATS scoring, and isolation (12 tests)
 - `auth.test.js`: Phase 1 authentication, rate limiting, and cookie security (22 tests)
-- `interview.test.js`: Phase 5 mock interview creation, draft autosaving, answer evaluation, question navigation, completion, report generation, user isolation, and CORS (8 tests)
+- `dashboard.test.js`: Phase 6 dashboard overview, readiness weight renormalization, skill intelligence, analytics time-series, notifications CRUD, and user isolation (9 tests)
+- `interview.test.js`: Phase 5 mock interview creation, draft autosaving, answer evaluation, question navigation, completion, report generation, user isolation, and CORS (9 tests)
 - `jobMatching.test.js`: Phase 4 job posting, 35/25/15/15/10 match rubric, career paths, and roadmap progress tracking (11 tests)
 - `resume.test.js`: Phase 2 resume upload, magic byte validation, storage isolation, phone number extraction (+91 formats) (27 tests)
 
@@ -465,7 +564,7 @@ Run in the `ai-service/` directory:
 cd ai-service
 .\venv\Scripts\python.exe -m unittest discover tests
 ```
-**Verified Test Results: 34 Tests Passed, 0 Failed.**
+**Verified Test Results: 35 Unit Tests Passed, 0 Failed.**
 
 ### 3. Frontend Production Build
 Run in the `frontend/` directory:
@@ -473,7 +572,7 @@ Run in the `frontend/` directory:
 cd frontend
 npm run build
 ```
-**Verified: Built in ~11s, zero syntax or bundling errors.**
+**Verified: Vite production build succeeded in ~8s with zero syntax or bundling errors.**
 
 ---
 
@@ -499,7 +598,7 @@ npm run build
 - [x] **Phase 3**: AI-Powered Resume Analysis & ATS Scoring (Completed)
 - [x] **Phase 4**: Intelligent Job Matching & Career Intelligence (Completed)
 - [x] **Phase 5**: AI-Powered Text-Based Mock Interview System (Completed)
-- [ ] **Phase 6**: Analytics Dashboard & Exportable Resume Optimizer
+- [x] **Phase 6**: Complete Dashboard Redesign, Career Intelligence & Final Platform Integration (Completed)
 
 ---
 

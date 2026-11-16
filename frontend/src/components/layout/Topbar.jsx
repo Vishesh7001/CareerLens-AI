@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, LogOut, User, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 import Button from '../common/Button';
+import NotificationBell from '../notifications/NotificationBell';
 
 const Topbar = ({ openMobileSidebar, isCollapsed, toggleCollapse }) => {
   const { user, logout } = useAuth();
@@ -58,7 +59,10 @@ const Topbar = ({ openMobileSidebar, isCollapsed, toggleCollapse }) => {
       </div>
 
       {/* Right User & Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Notification Bell */}
+        <NotificationBell />
+
         {/* Profile Card / Pill */}
         <button
           type="button"
