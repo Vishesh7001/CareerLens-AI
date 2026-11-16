@@ -27,9 +27,15 @@ const navigationItems = [
     isAvailable: true,
   },
   {
-    name: 'Resume Analysis',
+    name: 'My Resume',
     href: '/dashboard#resume-section',
     icon: FileText,
+    isAvailable: true,
+  },
+  {
+    name: 'AI Resume Analysis',
+    href: '/analysis',
+    icon: Sparkles,
     isAvailable: true,
   },
   {
@@ -85,9 +91,8 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar, isCollapsed, toggleCollapse
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out ${
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } ${isCollapsed ? 'lg:w-20' : 'w-64'}`}
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          } ${isCollapsed ? 'lg:w-20' : 'w-64'}`}
       >
         {/* Header / Brand */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100">
@@ -137,10 +142,9 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar, isCollapsed, toggleCollapse
                     }
                   }}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-brand-primary text-white shadow-sm'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                      ? 'bg-brand-primary text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     } ${isCollapsed ? 'justify-center' : ''}`
                   }
                   title={isCollapsed ? item.name : undefined}
@@ -155,9 +159,8 @@ const Sidebar = ({ isMobileOpen, closeMobileSidebar, isCollapsed, toggleCollapse
             return (
               <div
                 key={item.name}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 cursor-not-allowed select-none group ${
-                  isCollapsed ? 'justify-center' : ''
-                }`}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 cursor-not-allowed select-none group ${isCollapsed ? 'justify-center' : ''
+                  }`}
                 title={isCollapsed ? `${item.name} (Coming Soon)` : undefined}
               >
                 <div className="flex items-center gap-3">

@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
+import AnalysisPage from './pages/AnalysisPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -34,6 +35,16 @@ function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <ProfilePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <AnalysisPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

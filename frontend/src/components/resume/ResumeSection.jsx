@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   Download,
@@ -22,6 +23,7 @@ import resumeService from '../../services/resumeService';
 import { formatFileSize } from '../../utils/validation';
 
 const ResumeSection = () => {
+  const navigate = useNavigate();
   const [resume, setResume] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -245,6 +247,15 @@ const ResumeSection = () => {
 
               {/* Action buttons */}
               <div className="flex flex-wrap items-center gap-2.5 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={Sparkles}
+                  onClick={() => navigate('/analysis')}
+                >
+                  Analyze with AI
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"

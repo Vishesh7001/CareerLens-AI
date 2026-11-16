@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.health import router as health_router
+from app.routes.analysis import router as analysis_router
 
 # Load environment variables
 env_path = Path(__file__).resolve().parent.parent / ".env"
@@ -38,6 +39,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(health_router)
+app.include_router(analysis_router)
 
 # Root endpoint redirecting to health check or welcome
 @app.get("/", tags=["Root"])
