@@ -6,6 +6,10 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AnalysisPage from './pages/AnalysisPage';
+import JobsPage from './pages/JobsPage';
+import JobMatchingPage from './pages/JobMatchingPage';
+import CareerRecommendationsPage from './pages/CareerRecommendationsPage';
+import LearningRoadmapPage from './pages/LearningRoadmapPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -45,6 +49,46 @@ function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <AnalysisPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/jobs"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <JobsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/job-matching"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <JobMatchingPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/career-recommendations"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <CareerRecommendationsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/roadmaps"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <LearningRoadmapPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

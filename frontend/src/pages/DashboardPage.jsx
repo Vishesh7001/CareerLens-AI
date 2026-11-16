@@ -210,64 +210,79 @@ const DashboardPage = () => {
               </button>
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
+            <div className="p-4 rounded-lg bg-indigo-50/40 border border-indigo-200/70 flex flex-col justify-between">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-800 font-semibold text-sm">
                     <Briefcase className="w-4 h-4 text-brand-primary" />
-                    Job Matching
+                    Job Matching & Skill Gaps
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-600">
-                    Phase 3
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200">
+                    Live
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Smart semantic job recommendation matching your verified competencies.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  5-pillar compatibility scoring (35/25/15/15/10) against employer job descriptions.
                 </p>
               </div>
-              <div className="mt-3 text-[11px] text-brand-primary font-medium flex items-center gap-1">
-                Coming Soon
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/job-matching')}
+                className="mt-3 text-[11px] text-brand-primary font-semibold flex items-center gap-1 hover:underline text-left"
+              >
+                <span>Launch Job Match</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
+            <div className="p-4 rounded-lg bg-teal-50/40 border border-teal-200/70 flex flex-col justify-between">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-800 font-semibold text-sm">
-                    <Compass className="w-4 h-4 text-brand-primary" />
-                    Skill Gap Analysis
+                    <Compass className="w-4 h-4 text-teal-600" />
+                    Career Recommendations
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-600">
-                    Phase 4
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-teal-100 text-teal-800 border border-teal-200">
+                    Live
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Discover actionable gaps and curated learning paths to reach target roles.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Data-backed entry-level career path matching across 12 tech domains for freshers.
                 </p>
               </div>
-              <div className="mt-3 text-[11px] text-brand-primary font-medium flex items-center gap-1">
-                Coming Soon
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/career-recommendations')}
+                className="mt-3 text-[11px] text-teal-700 font-semibold flex items-center gap-1 hover:underline text-left"
+              >
+                <span>Explore Roles</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
 
-            <div className="p-4 rounded-lg bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
+            <div className="p-4 rounded-lg bg-sky-50/40 border border-sky-200/70 flex flex-col justify-between">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-800 font-semibold text-sm">
-                    <Sparkles className="w-4 h-4 text-brand-primary" />
-                    Career Roadmap
+                    <Sparkles className="w-4 h-4 text-sky-600" />
+                    Learning Roadmap
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-600">
-                    Phase 5
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
+                    Live
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Interactive multi-year career milestone projections.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Personalized 4-week practical milestone schedules with interactive progress tracking.
                 </p>
               </div>
-              <div className="mt-3 text-[11px] text-brand-primary font-medium flex items-center gap-1">
-                Coming Soon
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/roadmaps')}
+                className="mt-3 text-[11px] text-sky-700 font-semibold flex items-center gap-1 hover:underline text-left"
+              >
+                <span>View Roadmap</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
           </div>
         </Card>

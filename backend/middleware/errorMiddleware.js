@@ -6,6 +6,12 @@ const errorHandler = (err, req, res, next) => {
   let message = err.message || 'Internal Server Error';
   let errors = null;
 
+  // Handle CORS origin rejection
+  if (err.message === 'Not allowed by CORS') {
+    statusCode = 403;
+    message = 'Not allowed by CORS: Origin is not authorized.';
+  }
+
   // Handle Mongoose Bad ObjectId (CastError)
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
     statusCode = 400;

@@ -4,6 +4,12 @@
  */
 
 const { runFallbackAnalysis } = require('./fallbackAnalysisService');
+const {
+  runFallbackJobParse,
+  runFallbackJobMatch,
+  runFallbackCareerRecommendations,
+  runFallbackLearningRoadmap,
+} = require('./fallbackJobMatcher');
 
 const DEFAULT_AI_SERVICE_URL = 'http://127.0.0.1:8000';
 const DEFAULT_TIMEOUT_MS = 5000;
@@ -155,6 +161,354 @@ const analyzeResume = async (resumeData, targetRole, jobDescription, rawText = '
 };
 
 /**
+ * Normalizes JobMatch response from FastAPI snake_case to camelCase
+ */
+const normalizeJobMatchResponse = (data) => {
+  if (!data || typeof data !== 'object') return null;
+  const cat = data.category_scores || data.categoryScores || {};
+  const tech = cat.technical_skills || cat.technicalSkills || {};
+  const proj = cat.projects_relevance || cat.projectsRelevance || {};
+  const edu = cat.education_compatibility || cat.educationCompatibility || {};
+  const exp = cat.experience_internships || cat.experienceInternships || {};
+  const pref = cat.preferred_skills || cat.preferredSkills || {};
+
+  const projEval = data.project_evaluation || data.projectEvaluation || {};
+  const eduEval = data.education_evaluation || data.educationEvaluation || {};
+  const expEval = data.experience_evaluation || data.experienceEvaluation || {};
+
+  return {
+    overallScore: typeof data.overall_score === 'number' ? data.overall_score : data.overallScore,
+    matchClassification: data.match_classification || data.matchClassification,
+    categoryScores: {
+      technicalSkills: {
+        score: tech.score || 0,
+        weightedScore: tech.weighted_score ?? tech.weightedScore ?? 0,
+        weightPercentage: tech.weight_percentage ?? tech.weightPercentage ?? 35,
+        feedback: tech.feedback || '',
+      },
+      projectsRelevance: {
+        score: proj.score || 0,
+        weightedScore: proj.weighted_score ?? proj.weightedScore ?? 0,
+        weightPercentage: proj.weight_percentage ?? proj.weightPercentage ?? 25,
+        feedback: proj.feedback || '',
+      },
+      educationCompatibility: {
+        score: edu.score || 0,
+        weightedScore: edu.weighted_score ?? edu.weightedScore ?? 0,
+        weightPercentage: edu.weight_percentage ?? edu.weightPercentage ?? 15,
+        feedback: edu.feedback || '',
+      },
+      experienceInternships: {
+        score: exp.score || 0,
+        weightedScore: exp.weighted_score ?? exp.weightedScore ?? 0,
+        weightPercentage: exp.weight_percentage ?? exp.weightPercentage ?? 15,
+        feedback: exp.feedback || '',
+      },
+      preferredSkills: {
+        score: pref.score || 0,
+        weightedScore: pref.weighted_score ?? pref.weightedScore ?? 0,
+        weightPercentage: pref.weight_percentage ?? pref.weightPercentage ?? 10,
+        feedback: pref.feedback || '',
+      },
+    },
+    matchedSkills: (data.matched_skills || data.matchedSkills || []).map((m) => ({
+      skill: m.skill,
+      matchType: m.match_type || m.matchType,
+      matchedWith: m.matched_with || m.matchedWith || null,
+      isRequired: m.is_required !== undefined ? m.is_required : (m.isRequired !== undefined ? m.isRequired : true),
+    })),
+    missingRequiredSkills: (data.missing_required_skills || data.missingRequiredSkills || []).map((m) => ({
+      skill: m.skill,
+      priority: m.priority,
+      isRequired: m.is_required !== undefined ? m.is_required : (m.isRequired !== undefined ? m.isRequired : true),
+      reason: m.reason,
+      suggestedLearningDirection: m.suggested_learning_direction || m.suggestedLearningDirection,
+    })),
+    missingPreferredSkills: (data.missing_preferred_skills || data.missingPreferredSkills || []).map((m) => ({
+      skill: m.skill,
+      priority: m.priority,
+      isRequired: m.is_required !== undefined ? m.is_required : (m.isRequired !== undefined ? m.isRequired : false),
+      reason: m.reason,
+      suggestedLearningDirection: m.suggested_learning_direction || m.suggestedLearningDirection,
+    })),
+    projectEvaluation: {
+      relevanceScore: projEval.relevance_score ?? projEval.relevanceScore ?? 0,
+      feedback: projEval.feedback || '',
+      suggestions: projEval.suggestions || '',
+    },
+    educationEvaluation: {
+      compatibilityScore: eduEval.compatibility_score ?? eduEval.compatibilityScore ?? 0,
+      feedback: eduEval.feedback || '',
+    },
+    experienceEvaluation: {
+      compatibilityScore: expEval.compatibility_score ?? expEval.compatibilityScore ?? 0,
+      feedback: expEval.feedback || '',
+      studentPerspective: expEval.student_perspective || expEval.studentPerspective || '',
+    },
+    matchingExplanation: data.matching_explanation || data.matchingExplanation || '',
+    keyObservations: data.key_observations || data.keyObservations || [],
+    analysisProvider: data.analysis_provider || data.analysisProvider || 'fastapi-nlp-engine',
+  };
+};
+
+/**
+ * Normalizes Career Recommendations response
+ */
+const normalizeCareerRecommendationsResponse = (data) => {
+  if (!data || typeof data !== 'object') return null;
+
+  const mapPath = (p) => ({
+    role: p.role,
+    recommendationScore: p.recommendation_score ?? p.recommendationScore ?? 0,
+    whyRecommended: p.why_recommended || p.whyRecommended || '',
+    relevantExistingSkills: p.relevant_existing_skills || p.relevantExistingSkills || [],
+    missingSkills: p.missing_skills || p.missingSkills || [],
+    suggestedProjects: p.suggested_projects || p.suggestedProjects || [],
+    preparationPriorities: p.preparation_priorities || p.preparationPriorities || [],
+    isPrimary: Boolean(p.is_primary ?? p.isPrimary),
+  });
+
+  return {
+    primaryRecommendations: (data.primary_recommendations || data.primaryRecommendations || []).map(mapPath),
+    alternativeRecommendations: (data.alternative_recommendations || data.alternativeRecommendations || []).map(mapPath),
+    studentAdvice: data.student_advice || data.studentAdvice || '',
+    analysisProvider: data.analysis_provider || data.analysisProvider || 'fastapi-nlp-engine',
+  };
+};
+
+/**
+ * Normalizes Roadmap response
+ */
+const normalizeRoadmapResponse = (data) => {
+  if (!data || typeof data !== 'object') return null;
+
+  return {
+    title: data.title || 'Personalized Learning Roadmap',
+    targetRole: data.target_role || data.targetRole || 'Software Engineer',
+    companyName: data.company_name || data.companyName || null,
+    summary: data.summary || '',
+    totalWeeks: data.total_weeks ?? data.totalWeeks ?? 4,
+    items: (data.items || []).map((item) => ({
+      weekNumber: item.week_number ?? item.weekNumber,
+      title: item.title,
+      learningObjective: item.learning_objective || item.learningObjective,
+      skillToLearn: item.skill_to_learn || item.skillToLearn,
+      priority: item.priority || 'High',
+      estimatedDuration: item.estimated_duration || item.estimatedDuration || '1 Week',
+      learningSequence: item.learning_sequence || item.learningSequence || [],
+      practicalExercises: item.practical_exercises || item.practicalExercises || [],
+      suggestedMiniProjects: item.suggested_mini_projects || item.suggestedMiniProjects || [],
+      expectedOutcome: item.expected_outcome || item.expectedOutcome || '',
+      completed: Boolean(item.completed),
+      completedAt: item.completedAt || null,
+    })),
+    progressPercentage: data.progressPercentage || 0,
+    analysisProvider: data.analysis_provider || data.analysisProvider || 'fastapi-nlp-engine',
+  };
+};
+
+/**
+ * Parse job description using FastAPI with fallback
+ */
+const parseJobDescription = async (jobDescription, jobTitle, companyName, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/job/parse`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const payload = {
+      job_description: jobDescription,
+      job_title: jobTitle || null,
+      company_name: companyName || null,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      const reqs = data.extracted_requirements || data.extractedRequirements || {};
+      return {
+        requiredSkills: reqs.required_skills || reqs.requiredSkills || [],
+        preferredSkills: reqs.preferred_skills || reqs.preferredSkills || [],
+        requiredQualifications: reqs.required_qualifications || reqs.requiredQualifications || [],
+        experienceRequirements: reqs.experience_requirements || reqs.experienceRequirements || '',
+        projectRequirements: reqs.project_requirements || reqs.projectRequirements || [],
+        responsibilities: reqs.responsibilities || [],
+        softSkills: reqs.soft_skills || reqs.softSkills || [],
+      };
+    }
+
+    return runFallbackJobParse(jobDescription, jobTitle, companyName);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackJobParse(jobDescription, jobTitle, companyName);
+  }
+};
+
+/**
+ * Match resume against job description using FastAPI with fallback
+ */
+const matchResumeToJob = async (resumeData, jobDescription, jobTitle, companyName, extractedRequirements, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/job/match`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let reqsPayload = null;
+  if (extractedRequirements && typeof extractedRequirements === 'object') {
+    const reqObj = typeof extractedRequirements.toObject === 'function'
+      ? extractedRequirements.toObject()
+      : extractedRequirements;
+
+    const reqSkills = reqObj.required_skills || reqObj.requiredSkills || [];
+    const prefSkills = reqObj.preferred_skills || reqObj.preferredSkills || [];
+    const reqQuals = reqObj.required_qualifications || reqObj.requiredQualifications || [];
+    const expReq = reqObj.experience_requirements || reqObj.experienceRequirements || '';
+    const projReq = reqObj.project_requirements || reqObj.projectRequirements || [];
+    const resps = reqObj.responsibilities || [];
+    const softSkills = reqObj.soft_skills || reqObj.softSkills || [];
+
+    reqsPayload = {
+      required_skills: reqSkills,
+      requiredSkills: reqSkills,
+      preferred_skills: prefSkills,
+      preferredSkills: prefSkills,
+      required_qualifications: reqQuals,
+      requiredQualifications: reqQuals,
+      experience_requirements: expReq,
+      experienceRequirements: expReq,
+      project_requirements: projReq,
+      projectRequirements: projReq,
+      responsibilities: resps,
+      soft_skills: softSkills,
+      softSkills: softSkills,
+    };
+  }
+
+  try {
+    const payload = {
+      resume_data: resumeData,
+      job_description: jobDescription,
+      job_title: jobTitle,
+      company_name: companyName,
+      extracted_requirements: reqsPayload,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      return normalizeJobMatchResponse(data);
+    }
+
+    return runFallbackJobMatch(resumeData, jobDescription, jobTitle, companyName, reqsPayload || extractedRequirements);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackJobMatch(resumeData, jobDescription, jobTitle, companyName, reqsPayload || extractedRequirements);
+  }
+};
+
+/**
+ * Get career path recommendations using FastAPI with fallback
+ */
+const getCareerRecommendations = async (resumeData, jobDescription, targetRole, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/job/recommendations`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const payload = {
+      resume_data: resumeData,
+      job_description: jobDescription || null,
+      target_role: targetRole || null,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      return normalizeCareerRecommendationsResponse(data);
+    }
+
+    return runFallbackCareerRecommendations(resumeData, jobDescription, targetRole);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackCareerRecommendations(resumeData, jobDescription, targetRole);
+  }
+};
+
+/**
+ * Generate personalized learning roadmap using FastAPI with fallback
+ */
+const generateLearningRoadmap = async (resumeData, jobDescription, jobTitle, companyName, missingSkills, durationWeeks = 4, options = {}) => {
+  const timeoutMs = options.timeoutMs || ANALYSIS_TIMEOUT_MS;
+  const baseUrl = options.overrideUrl || getAiServiceBaseUrl();
+  const endpoint = `${baseUrl}/job/roadmap`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const payload = {
+      resume_data: resumeData,
+      job_description: jobDescription,
+      job_title: jobTitle,
+      company_name: companyName || null,
+      missing_skills: missingSkills || null,
+      duration_weeks: durationWeeks,
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      return normalizeRoadmapResponse(data);
+    }
+
+    return runFallbackLearningRoadmap(resumeData, jobDescription, jobTitle, companyName, missingSkills, durationWeeks);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return runFallbackLearningRoadmap(resumeData, jobDescription, jobTitle, companyName, missingSkills, durationWeeks);
+  }
+};
+
+/**
  * Get normalized base URL for the FastAPI AI microservice
  * @returns {string} Clean base URL without trailing slashes
  */
@@ -253,5 +607,12 @@ module.exports = {
   getAiServiceBaseUrl,
   analyzeResume,
   normalizeAnalysisResponse,
+  parseJobDescription,
+  matchResumeToJob,
+  getCareerRecommendations,
+  generateLearningRoadmap,
+  normalizeJobMatchResponse,
+  normalizeCareerRecommendationsResponse,
+  normalizeRoadmapResponse,
 };
 

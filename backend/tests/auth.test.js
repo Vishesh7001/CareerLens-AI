@@ -699,4 +699,45 @@ describe('CareerLens AI - Backend Authentication & Integration Suite', () => {
 
     assert.ok(isCleared, 'Cookie-clearing instruction must expire or clear the cookie value');
   });
+
+  test('Scenario 9: CORS headers are properly returned for allowed origins and credentials on auth requests and errors', async () => {
+    // 9a. Preflight OPTIONS to /api/auth/login
+    const preflightRes = await request({
+      method: 'OPTIONS',
+      path: '/api/auth/login',
+      headers: {
+        Origin: 'http://localhost:5173',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type',
+      },
+    });
+    assert.equal(preflightRes.statusCode, 204);
+    assert.equal(preflightRes.headers['access-control-allow-origin'], 'http://localhost:5173');
+    assert.equal(preflightRes.headers['access-control-allow-credentials'], 'true');
+    assert.ok(preflightRes.headers['access-control-allow-methods'].includes('POST'));
+    assert.ok(preflightRes.headers['access-control-allow-methods'].includes('PATCH'));
+
+    // 9b. Auth error (401 unauthenticated /api/users/profile) retains CORS headers
+    const unauthRes = await request({
+      method: 'GET',
+      path: '/api/users/profile',
+      headers: {
+        Origin: 'http://localhost:5173',
+      },
+    });
+    assert.equal(unauthRes.statusCode, 401);
+    assert.equal(unauthRes.headers['access-control-allow-origin'], 'http://localhost:5173');
+    assert.equal(unauthRes.headers['access-control-allow-credentials'], 'true');
+
+    // 9c. Disallowed origin does not receive allow-origin
+    const badOriginRes = await request({
+      method: 'OPTIONS',
+      path: '/api/auth/login',
+      headers: {
+        Origin: 'http://evil-tracker.example.com',
+        'Access-Control-Request-Method': 'POST',
+      },
+    });
+    assert.notEqual(badOriginRes.headers['access-control-allow-origin'], 'http://evil-tracker.example.com');
+  });
 });
