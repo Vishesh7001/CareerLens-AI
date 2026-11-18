@@ -7,6 +7,9 @@ const {
   saveResumeToDisk,
   deleteFileFromDisk,
   getStorageDir,
+  saveResumeFile,
+  deleteResumeFile,
+  openGridFsDownloadStream,
 } = require('../services/resumeService');
 const { parseResumeText } = require('../services/resumeParserService');
 
@@ -16,7 +19,7 @@ const { parseResumeText } = require('../services/resumeParserService');
  * @access  Private (Authenticated User)
  */
 const uploadResume = async (req, res, next) => {
-  let savedFilePath = null;
+  let savedFileRecord = null;
 
   try {
     // 1. Verify file was provided by multipart handler
@@ -49,17 +52,23 @@ const uploadResume = async (req, res, next) => {
 
     // 5. Check if user already has an active resume
     let existingResume = await Resume.findOne({ user: req.user._id });
-    const oldFilePath = existingResume ? existingResume.filePath : null;
+    const oldResumeData = existingResume ? {
+      filePath: existingResume.filePath,
+      storageType: existingResume.storageType,
+      gridFsFileId: existingResume.gridFsFileId,
+    } : null;
 
-    // 6. Save new file to configured storage directory
-    const saved = await saveResumeToDisk(req.user._id, originalname, buffer);
-    savedFilePath = saved.filePath;
+    // 6. Save new file using unified storage adapter (GridFS on Vercel/Cloud, Local Disk in dev/test)
+    const saved = await saveResumeFile(req.user._id, originalname, buffer);
+    savedFileRecord = saved;
 
     // 7. Persist or update resume record in MongoDB
     if (existingResume) {
       existingResume.originalFileName = saved.sanitizedOriginal || originalname;
       existingResume.storedFileName = saved.storedFileName;
       existingResume.filePath = saved.filePath;
+      existingResume.storageType = saved.storageType || 'local';
+      existingResume.gridFsFileId = saved.gridFsFileId || null;
       existingResume.fileSize = size;
       existingResume.mimeType = mimetype || 'application/pdf';
       existingResume.rawText = rawText;
@@ -69,9 +78,9 @@ const uploadResume = async (req, res, next) => {
 
       await existingResume.save();
 
-      // Clean up previous file from disk
-      if (oldFilePath && oldFilePath !== savedFilePath) {
-        await deleteFileFromDisk(oldFilePath);
+      // Clean up previous file from storage
+      if (oldResumeData && oldResumeData.filePath !== saved.filePath) {
+        await deleteResumeFile(oldResumeData);
       }
 
       return res.status(200).json({
@@ -85,6 +94,8 @@ const uploadResume = async (req, res, next) => {
         originalFileName: saved.sanitizedOriginal || originalname,
         storedFileName: saved.storedFileName,
         filePath: saved.filePath,
+        storageType: saved.storageType || 'local',
+        gridFsFileId: saved.gridFsFileId || null,
         fileSize: size,
         mimeType: mimetype || 'application/pdf',
         rawText,
@@ -101,8 +112,8 @@ const uploadResume = async (req, res, next) => {
     }
   } catch (error) {
     // If saving succeeded but DB or subsequent step failed, clean up the newly created file
-    if (savedFilePath) {
-      await deleteFileFromDisk(savedFilePath);
+    if (savedFileRecord) {
+      await deleteResumeFile(savedFileRecord);
     }
 
     const statusCode = error.statusCode || 400;
@@ -156,13 +167,53 @@ const downloadResume = async (req, res, next) => {
       });
     }
 
-    if (!resume.filePath && !resume.storedFileName) {
+    if (!resume.filePath && !resume.storedFileName && !resume.gridFsFileId) {
       return res.status(404).json({
         success: false,
         message: 'Resume file record is incomplete.',
       });
     }
 
+    // A. Check if stored in MongoDB GridFS (Vercel Serverless / Cloud Production)
+    const isGridFs =
+      resume.storageType === 'gridfs' ||
+      Boolean(resume.gridFsFileId) ||
+      (typeof resume.filePath === 'string' && resume.filePath.startsWith('gridfs://'));
+
+    if (isGridFs) {
+      const fileId = resume.gridFsFileId || (resume.filePath ? resume.filePath.replace('gridfs://', '') : null);
+      if (!fileId) {
+        return res.status(404).json({
+          success: false,
+          message: 'Resume file identifier is missing.',
+        });
+      }
+
+      const clientFilename = resume.originalFileName || resume.storedFileName || 'resume.pdf';
+      const encodedFilename = encodeURIComponent(clientFilename);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${clientFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodedFilename}`
+      );
+
+      const downloadStream = openGridFsDownloadStream(fileId);
+      downloadStream.on('error', (streamErr) => {
+        console.error('[GridFS Download] Stream error:', streamErr.message);
+        if (!res.headersSent) {
+          return res.status(404).json({
+            success: false,
+            message: 'Resume file is not found on the server storage.',
+          });
+        }
+      });
+
+      return downloadStream.pipe(res);
+    }
+
+    // B. Local Disk storage (Preserved for local development & automated test suites)
     // 2. Resolve canonical storage directory
     const storageDir = getStorageDir();
     let canonicalStorageDir = path.resolve(storageDir);
@@ -172,7 +223,7 @@ const downloadResume = async (req, res, next) => {
           ? fs.realpathSync.native(canonicalStorageDir)
           : fs.realpathSync(canonicalStorageDir);
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // 3. Resolve candidate file path strictly from database values
     let candidatePath = resume.filePath
@@ -195,7 +246,7 @@ const downloadResume = async (req, res, next) => {
           ? fs.realpathSync.native(candidatePath)
           : fs.realpathSync(candidatePath);
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // 4. Robust path traversal prevention using path.relative()
     const relative = path.relative(canonicalStorageDir, canonicalTarget);
@@ -263,8 +314,8 @@ const deleteResume = async (req, res, next) => {
       });
     }
 
-    // Safely remove file on disk
-    await deleteFileFromDisk(resume.filePath);
+    // Safely remove file via unified storage adapter (GridFS chunks in cloud, local disk file locally)
+    await deleteResumeFile(resume);
 
     // Delete record from MongoDB
     await Resume.deleteOne({ _id: resume._id });

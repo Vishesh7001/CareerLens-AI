@@ -1,8 +1,8 @@
 const multer = require('multer');
 const path = require('path');
 
-// 5 MB max file size limit
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+// 4 MB max file size limit (safely under Vercel Serverless Function 4.5 MB gateway payload limit)
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
 // Store in memory buffer for immediate magic-byte inspection and text extraction
 const storage = multer.memoryStorage();
@@ -41,7 +41,7 @@ const handleResumeUpload = (req, res, next) => {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
           success: false,
-          message: 'File size exceeds the 5MB limit. Please upload a PDF under 5MB.',
+          message: 'File size exceeds the 4MB limit. Please upload a PDF under 4MB.',
         });
       }
       return res.status(400).json({

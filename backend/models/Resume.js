@@ -23,6 +23,15 @@ const resumeSchema = new mongoose.Schema(
       type: String,
       required: [true, 'File path is required'],
     },
+    storageType: {
+      type: String,
+      enum: ['local', 'gridfs'],
+      default: 'local',
+    },
+    gridFsFileId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
     fileSize: {
       type: Number,
       required: [true, 'File size is required'],
