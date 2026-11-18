@@ -33,20 +33,22 @@ const AnalyticsCharts = ({ analytics = {} }) => {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return '#10b981'; // emerald
-    if (score >= 65) return '#0ea5e9'; // sky
-    if (score >= 40) return '#f59e0b'; // amber
-    return '#f43f5e'; // rose
+    if (score >= 80) return '#244B38'; // forest green
+    if (score >= 65) return '#2D5A43'; // sage
+    if (score >= 40) return '#B45309'; // amber
+    return '#BE3A34'; // warm red
   };
 
   // Render SVG Line/Bar Chart for Interview or Resume or Job History
   const renderHistoryChart = (data, valueKey, labelKey, secondaryKey, title, emptyMessage) => {
     if (!data || data.length === 0) {
       return (
-        <div className="py-12 text-center space-y-2">
-          <BarChart2 className="w-8 h-8 text-slate-300 mx-auto" />
-          <p className="text-xs font-semibold text-slate-700">No Historical Records</p>
-          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">{emptyMessage}</p>
+        <div className="py-14 text-center space-y-2">
+          <div className="w-10 h-10 rounded-full bg-brand-bg text-brand-muted flex items-center justify-center mx-auto">
+            <BarChart2 className="w-5 h-5" />
+          </div>
+          <p className="text-xs font-heading font-semibold text-brand-charcoal">No Historical Records</p>
+          <p className="text-[11px] text-brand-muted max-w-sm mx-auto">{emptyMessage}</p>
         </div>
       );
     }
@@ -73,6 +75,13 @@ const AnalyticsCharts = ({ analytics = {} }) => {
         ? `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}`
         : '';
 
+    const areaD =
+      points.length > 1
+        ? `M ${points[0].x},${padding.top + usableHeight} L ${points
+            .map((p) => `${p.x},${p.y}`)
+            .join(' L ')} L ${points[points.length - 1].x},${padding.top + usableHeight} Z`
+        : '';
+
     return (
       <div className="space-y-4">
         <div className="relative w-full overflow-x-auto">
@@ -80,6 +89,13 @@ const AnalyticsCharts = ({ analytics = {} }) => {
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
             className="w-full h-44 overflow-visible"
           >
+            <defs>
+              <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#244B38" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#244B38" stopOpacity="0.0" />
+              </linearGradient>
+            </defs>
+
             {/* Horizontal Grid lines */}
             {[0, 25, 50, 75, 100].map((tick) => {
               const y = padding.top + usableHeight - (tick / maxVal) * usableHeight;
@@ -90,7 +106,7 @@ const AnalyticsCharts = ({ analytics = {} }) => {
                     y1={y}
                     x2={chartWidth - padding.right}
                     y2={y}
-                    stroke="#f1f5f9"
+                    stroke="#ECEEE9"
                     strokeWidth="1"
                   />
                   <text
@@ -98,182 +114,169 @@ const AnalyticsCharts = ({ analytics = {} }) => {
                     y={y + 3}
                     textAnchor="end"
                     fontSize="9"
-                    fill="#94a3b8"
-                    fontWeight="600"
+                    fill="#6A726A"
+                    fontFamily="Inter, sans-serif"
                   >
-                    {tick}
+                    {tick}%
                   </text>
                 </g>
               );
             })}
 
-            {/* Connecting Trend Line */}
-            {points.length > 1 && (
+            {/* Area Fill */}
+            {areaD && <path d={areaD} fill="url(#chartGradient)" />}
+
+            {/* Line Path */}
+            {pathD && (
               <path
                 d={pathD}
                 fill="none"
-                stroke="#0284c7"
+                stroke="#244B38"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             )}
 
-            {/* Data Points */}
-            {points.map((pt, idx) => (
-              <g key={idx} className="group cursor-pointer">
+            {/* Points & Labels */}
+            {points.map((p, idx) => (
+              <g key={idx} className="group">
                 <circle
-                  cx={pt.x}
-                  cy={pt.y}
-                  r="5"
-                  fill="#ffffff"
-                  stroke={getScoreColor(pt[valueKey])}
-                  strokeWidth="2.5"
+                  cx={p.x}
+                  cy={p.y}
+                  r="4.5"
+                  fill="#244B38"
+                  stroke="#FFFFFF"
+                  strokeWidth="2"
+                  className="transition-transform duration-150 hover:scale-125 cursor-pointer"
                 />
                 {/* Score label above point */}
                 <text
-                  x={pt.x}
-                  y={pt.y - 8}
+                  x={p.x}
+                  y={p.y - 8}
                   textAnchor="middle"
                   fontSize="10"
                   fontWeight="bold"
-                  fill="#1e293b"
+                  fill="#191C1A"
+                  fontFamily="Plus Jakarta Sans, sans-serif"
                 >
-                  {pt[valueKey]}%
+                  {p[valueKey]}%
                 </text>
-                {/* Date label on X axis */}
+                {/* Date label on x-axis */}
                 <text
-                  x={pt.x}
-                  y={chartHeight - 8}
+                  x={p.x}
+                  y={chartHeight - 10}
                   textAnchor="middle"
-                  fontSize="9"
-                  fill="#64748b"
+                  fontSize="8.5"
+                  fill="#6A726A"
+                  fontFamily="Inter, sans-serif"
                 >
-                  {formatDate(pt.date)}
+                  {formatDate(p.createdAt || p.date)}
                 </text>
               </g>
             ))}
           </svg>
         </div>
 
-        {/* Legend / Recent List Below Chart */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
-          {data.slice(-3).reverse().map((item, i) => (
-            <div
-              key={i}
-              className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs"
-            >
-              <div className="truncate pr-2">
-                <span className="font-bold text-slate-800 block truncate">
-                  {item[labelKey] || item.role || item.targetRole || 'Session'}
-                </span>
-                <span className="text-[10px] text-slate-400">
-                  {formatDate(item.date)} {secondaryKey && item[secondaryKey] ? `• ${item[secondaryKey]}` : ''}
-                </span>
-              </div>
-              <span
-                className="font-extrabold px-2 py-0.5 rounded-md text-xs"
-                style={{
-                  color: getScoreColor(item[valueKey]),
-                  backgroundColor: `${getScoreColor(item[valueKey])}15`,
-                }}
-              >
-                {item[valueKey]}%
-              </span>
-            </div>
-          ))}
+        {/* Legend / Secondary Details */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-brand-border/60 text-xs">
+          <span className="font-heading font-semibold text-brand-charcoal">{title}</span>
+          <div className="flex items-center gap-3 text-brand-muted text-[11px]">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
+              Recorded Progress
+            </span>
+            <span>{data.length} evaluation points</span>
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <Card className="border-slate-200 p-6 space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+    <Card className="border-brand-border p-6 space-y-4">
+      {/* Header and Chart Selector */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-brand-border/70">
         <div>
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-brand-primary" />
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
               Career Progress Analytics
             </h3>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real historical score trajectories and learning progress over time
+          <p className="text-xs text-brand-muted mt-0.5">
+            Time-series progression across interviews, job matches, and ATS resume evaluations
           </p>
         </div>
 
-        {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+        {/* Toggle Buttons */}
+        <div className="flex items-center gap-1.5 bg-brand-bg p-1 rounded-xl border border-brand-border">
           <button
             type="button"
             onClick={() => setActiveChart('interview')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-all ${
               activeChart === 'interview'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-brand-primary shadow-soft-xs'
+                : 'text-brand-slate hover:text-brand-charcoal'
             }`}
           >
-            <MessageSquareCode className="w-3.5 h-3.5" />
-            <span>Interviews</span>
+            Interviews
           </button>
           <button
             type="button"
             onClick={() => setActiveChart('job')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-all ${
               activeChart === 'job'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-brand-primary shadow-soft-xs'
+                : 'text-brand-slate hover:text-brand-charcoal'
             }`}
           >
-            <Briefcase className="w-3.5 h-3.5" />
-            <span>Job Matches</span>
+            Job Matches
           </button>
           <button
             type="button"
             onClick={() => setActiveChart('resume')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-all ${
               activeChart === 'resume'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-brand-primary shadow-soft-xs'
+                : 'text-brand-slate hover:text-brand-charcoal'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Resume Analyses</span>
+            Resume Scores
           </button>
         </div>
       </div>
 
-      {/* Chart Body */}
-      <div>
+      {/* Chart Canvas */}
+      <div className="pt-2">
         {activeChart === 'interview' &&
           renderHistoryChart(
             interviewHistory,
             'score',
             'role',
-            'difficulty',
-            'Mock Interview Performance',
-            'Complete mock interview sessions to track your scoring progression.'
+            'roundType',
+            'Mock Interview Score Progression',
+            'Complete mock interview sessions to visualize your technical & behavioral score trajectory.'
           )}
 
         {activeChart === 'job' &&
           renderHistoryChart(
             jobMatchHistory,
-            'score',
+            'overallMatchScore',
+            'jobTitle',
             'company',
-            'role',
-            'Job Matching Scores',
-            'Run job match evaluations to compare compatibility across target employers.'
+            'Job Compatibility Compatibility Trend',
+            'Run job match analyses against target jobs to track your market alignment.'
           )}
 
         {activeChart === 'resume' &&
           renderHistoryChart(
             resumeHistory,
-            'score',
+            'overallScore',
             'targetRole',
-            'provider',
-            'Resume Quality History',
-            'Run AI resume analyses to monitor ATS optimization scores.'
+            'resumeName',
+            'ATS Resume Quality Progression',
+            'Run ATS resume reviews across target roles to track optimization improvements.'
           )}
       </div>
     </Card>

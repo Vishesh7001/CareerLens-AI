@@ -730,4 +730,107 @@ describe('CareerLens AI - Phase 4 Job Matching & Career Intelligence Suite', () 
       'Unauthorized origin must not receive allow-origin header'
     );
   });
+
+  // 12. Role-Specific Learning Roadmaps: Generation, Isolation & Independent Progress
+  it('12. Generates role-specific roadmaps for Full Stack, Backend, and Software Developer, verifies separate retrieval and progress isolation', async () => {
+    // 1. Generate Full Stack Developer roadmap
+    const fsRes = await fetch(`${baseUrl}/api/roadmaps`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token1}` },
+      body: JSON.stringify({
+        targetRole: 'Full Stack Developer',
+        durationWeeks: 4,
+      }),
+    });
+    assert.strictEqual(fsRes.status, 201);
+    const fsData = await fsRes.json();
+    assert.strictEqual(fsData.success, true);
+    assert.strictEqual(fsData.roadmap.targetRole, 'Full Stack Developer');
+    const fsId = fsData.roadmap._id;
+
+    // 2. Generate Backend Developer roadmap
+    const beRes = await fetch(`${baseUrl}/api/roadmaps`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token1}` },
+      body: JSON.stringify({
+        targetRole: 'Backend Developer',
+        durationWeeks: 4,
+      }),
+    });
+    assert.strictEqual(beRes.status, 201);
+    const beData = await beRes.json();
+    assert.strictEqual(beData.success, true);
+    assert.strictEqual(beData.roadmap.targetRole, 'Backend Developer');
+    const beId = beData.roadmap._id;
+
+    // 3. Generate Software Developer roadmap
+    const swRes = await fetch(`${baseUrl}/api/roadmaps`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token1}` },
+      body: JSON.stringify({
+        targetRole: 'Software Developer',
+        durationWeeks: 4,
+      }),
+    });
+    assert.strictEqual(swRes.status, 201);
+    const swData = await swRes.json();
+    assert.strictEqual(swData.success, true);
+    assert.strictEqual(swData.roadmap.targetRole, 'Software Developer');
+    const swId = swData.roadmap._id;
+
+    // 4. Verify all 3 have distinct IDs
+    assert.notStrictEqual(fsId, beId, 'Full Stack and Backend IDs must differ');
+    assert.notStrictEqual(beId, swId, 'Backend and Software Developer IDs must differ');
+    assert.notStrictEqual(fsId, swId, 'Full Stack and Software Developer IDs must differ');
+
+    // 5. Query specifically by role using GET /api/roadmaps?role=Backend%20Developer
+    const queryBeRes = await fetch(`${baseUrl}/api/roadmaps?role=Backend%20Developer`, {
+      headers: { Authorization: `Bearer ${token1}` },
+    });
+    assert.strictEqual(queryBeRes.status, 200);
+    const queryBeData = await queryBeRes.json();
+    assert.strictEqual(queryBeData.roadmap.targetRole, 'Backend Developer');
+    assert.strictEqual(queryBeData.roadmap._id, beId);
+
+    // 6. Query specifically by role using GET /api/roadmaps/role/:role
+    const roleSwRes = await fetch(`${baseUrl}/api/roadmaps/role/Software%20Developer`, {
+      headers: { Authorization: `Bearer ${token1}` },
+    });
+    assert.strictEqual(roleSwRes.status, 200);
+    const roleSwData = await roleSwRes.json();
+    assert.strictEqual(roleSwData.roadmap.targetRole, 'Software Developer');
+    assert.strictEqual(roleSwData.roadmap._id, swId);
+
+    // 7. Complete Week 1 in Backend Developer
+    const patchBeRes = await fetch(`${baseUrl}/api/roadmaps/${beId}/progress`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token1}` },
+      body: JSON.stringify({ weekNumber: 1, completed: true }),
+    });
+    assert.strictEqual(patchBeRes.status, 200);
+    const patchBeData = await patchBeRes.json();
+    assert.strictEqual(patchBeData.roadmap.progressPercentage, 25);
+    assert.strictEqual(patchBeData.roadmap.items[0].completed, true);
+
+    // 8. Verify Full Stack Developer and Software Developer roadmaps have NOT been modified (0%)
+    const checkFsRes = await fetch(`${baseUrl}/api/roadmaps/role/Full%20Stack%20Developer`, {
+      headers: { Authorization: `Bearer ${token1}` },
+    });
+    const checkFsData = await checkFsRes.json();
+    assert.strictEqual(checkFsData.roadmap.progressPercentage, 0, 'Full Stack Developer progress must remain 0%');
+    assert.strictEqual(checkFsData.roadmap.items[0].completed, false);
+
+    const checkSwRes = await fetch(`${baseUrl}/api/roadmaps/role/Software%20Developer`, {
+      headers: { Authorization: `Bearer ${token1}` },
+    });
+    const checkSwData = await checkSwRes.json();
+    assert.strictEqual(checkSwData.roadmap.progressPercentage, 0, 'Software Developer progress must remain 0%');
+    assert.strictEqual(checkSwData.roadmap.items[0].completed, false);
+
+    // 9. Verify User B cannot access User A's role roadmap
+    const user2RoleRes = await fetch(`${baseUrl}/api/roadmaps/role/Backend%20Developer`, {
+      headers: { Authorization: `Bearer ${token2}` },
+    });
+    assert.strictEqual(user2RoleRes.status, 404, 'User B must not access User A role roadmap');
+  });
 });

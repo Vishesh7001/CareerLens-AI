@@ -8,7 +8,7 @@ const DashboardLayout = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-brand-bg flex text-brand-slate">
       {/* Sidebar */}
       <Sidebar
         isMobileOpen={isMobileOpen}
@@ -38,4 +38,3 @@ const DashboardLayout = ({ children }) => {
 };
 
 export default DashboardLayout;
-

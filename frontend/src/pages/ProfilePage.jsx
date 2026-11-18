@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Calendar, CheckCircle2, AlertCircle, ShieldAlert, Save } from 'lucide-react';
+import { User, Mail, Calendar, CheckCircle2, AlertCircle, ShieldCheck, Save, Target } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
@@ -14,7 +14,6 @@ const ProfilePage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync state if user context updates
   useEffect(() => {
     if (user?.fullName) {
       setFullName(user.fullName);
@@ -32,7 +31,6 @@ const ProfilePage = () => {
       return;
     }
 
-    // Check if name has actually changed
     if (fullName.trim() === user?.fullName) {
       setSuccessMessage('No changes to save.');
       return;
@@ -56,8 +54,6 @@ const ProfilePage = () => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
       });
     } catch {
       return 'N/A';
@@ -68,26 +64,25 @@ const ProfilePage = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-          My Profile
+        <h1 className="text-2xl sm:text-3xl font-heading font-bold text-brand-charcoal tracking-tight">
+          Candidate Profile
         </h1>
-        <p className="text-sm text-slate-600 mt-1">
-          Manage your personal information and verified account details
+        <p className="text-sm text-brand-muted mt-1">
+          Manage your personal workspace identity and verified credentials
         </p>
       </div>
 
-      {/* Success Alert */}
+      {/* Alerts */}
       {successMessage && (
-        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-sm">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-brand-forestLight border border-brand-sageBorder/60 flex items-center gap-3 text-brand-primary text-sm font-medium">
+          <CheckCircle2 className="w-5 h-5 text-brand-primary flex-shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
-      {/* Error Alert */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center gap-3 text-red-800 text-sm">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+        <div className="p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 flex items-center gap-3 text-brand-danger text-sm font-medium">
+          <AlertCircle className="w-5 h-5 text-brand-danger flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -95,102 +90,82 @@ const ProfilePage = () => {
       {/* Profile Details & Form */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Side: Avatar Card */}
-        <Card className="md:col-span-1 flex flex-col items-center text-center p-6 border-slate-200">
-          <div className="w-20 h-20 rounded-full bg-brand-navy text-white text-2xl font-bold flex items-center justify-center shadow-md mb-4">
+        <Card className="md:col-span-1 flex flex-col items-center text-center p-6 border-brand-border">
+          <div className="w-20 h-20 rounded-2xl bg-brand-forestLight border border-brand-sageBorder/60 text-brand-primary text-2xl font-heading font-bold flex items-center justify-center shadow-soft-xs mb-4">
             {user?.fullName
-              ? user.fullName.substring(0, 2).toUpperCase()
-              : 'CL'}
+              ? user.fullName
+                  .split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase()
+              : 'U'}
           </div>
-          <h2 className="text-lg font-bold text-slate-900">
-            {user?.fullName || 'User'}
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5 truncate max-w-full">
+
+          <h3 className="text-base font-heading font-bold text-brand-charcoal">
+            {user?.fullName || 'Candidate'}
+          </h3>
+          <p className="text-xs text-brand-muted mt-0.5 truncate max-w-full">
             {user?.email}
           </p>
-          <div className="mt-4 pt-4 border-t border-slate-100 w-full text-left space-y-2 text-xs text-slate-500">
-            <div>
-              <span className="font-semibold text-slate-700 block">User ID:</span>
-              <span className="font-mono break-all text-[11px] text-slate-400">
-                {user?.id || 'Active'}
+
+          <div className="mt-5 w-full pt-4 border-t border-brand-border/70 space-y-2 text-left text-xs">
+            <div className="flex items-center justify-between text-brand-slate">
+              <span className="text-brand-muted">Account Status:</span>
+              <span className="inline-flex items-center gap-1 font-semibold text-brand-primary">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+                Active
               </span>
             </div>
-            <div>
-              <span className="font-semibold text-slate-700 block">Account Status:</span>
-              <span className="text-emerald-600 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                Active & Verified
-              </span>
+            <div className="flex items-center justify-between text-brand-slate">
+              <span className="text-brand-muted">Member Since:</span>
+              <span className="font-medium text-brand-charcoal">{formatDate(user?.createdAt)}</span>
             </div>
           </div>
         </Card>
 
-        {/* Right Side: Editable Details */}
-        <Card className="md:col-span-2 space-y-6 border-slate-200">
-          <div>
-            <h3 className="text-base font-semibold text-slate-900">
-              Personal Information
-            </h3>
-            <p className="text-xs text-slate-500">
-              Update your full name as it should appear across your resume and applications.
-            </p>
-          </div>
+        {/* Right Side: Form */}
+        <Card className="md:col-span-2 p-6 sm:p-8 border-brand-border">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="border-b border-brand-border/70 pb-4">
+              <h3 className="text-lg font-heading font-bold text-brand-charcoal">
+                Personal Information
+              </h3>
+              <p className="text-xs text-brand-muted mt-1">
+                Your full name will be displayed across mock interview reports and resume diagnostics.
+              </p>
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name Editable */}
-            <Input
-              label="Full Name"
-              id="profileFullName"
-              name="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => {
-                setFullName(e.target.value);
-                if (error) setError('');
-                if (successMessage) setSuccessMessage('');
-              }}
-              startIcon={User}
-              required
-            />
+            <div className="space-y-4">
+              <Input
+                label="Full Name"
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                startIcon={User}
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (error) setError('');
+                }}
+                disabled={isSubmitting}
+                placeholder="Your full name"
+              />
 
-            {/* Email (Read-Only in Phase 1) */}
-            <div>
               <Input
                 label="Email Address (Locked)"
-                id="profileEmail"
+                id="email"
                 name="email"
                 type="email"
-                value={user?.email || ''}
                 disabled
                 startIcon={Mail}
-                helperText="Email addresses cannot be modified in Phase 1 for security and credential verification."
+                value={user?.email || ''}
+                helperText="Email cannot be changed after registration for session security."
               />
             </div>
 
-            {/* Account Metadata */}
-            <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                <span className="text-xs text-slate-400 block font-medium flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Account Created
-                </span>
-                <span className="text-xs font-semibold text-slate-700 mt-1 block">
-                  {formatDate(user?.createdAt)}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                <span className="text-xs text-slate-400 block font-medium flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Last Updated
-                </span>
-                <span className="text-xs font-semibold text-slate-700 mt-1 block">
-                  {formatDate(user?.updatedAt || user?.createdAt)}
-                </span>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-3 flex justify-end">
+            <div className="pt-2 flex justify-end">
               <Button
                 type="submit"
                 variant="primary"
@@ -201,6 +176,19 @@ const ProfilePage = () => {
               </Button>
             </div>
           </form>
+
+          {/* Account Security Information */}
+          <div className="mt-8 pt-6 border-t border-brand-border/70">
+            <div className="flex items-start gap-3 text-xs text-brand-muted">
+              <ShieldCheck className="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-heading font-semibold text-brand-charcoal">Session Security & User Isolation</span>
+                <p className="mt-0.5 leading-relaxed">
+                  Your uploaded resumes, parsed profile records, target job postings, and mock interview transcripts are cryptographically isolated to your unique candidate identity.
+                </p>
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
     </div>
@@ -208,4 +196,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

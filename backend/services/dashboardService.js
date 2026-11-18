@@ -27,12 +27,37 @@ const aggregateSkillIntelligence = ({
   const missingRequiredSkills = [];
   const recentlyImprovedSkills = [];
 
-  // Helper to dedupe and push
+  // Helper to dedupe, normalize contract, and merge multi-source evidence
   const addSkill = (list, set, item) => {
-    const key = (item.skillName || '').toLowerCase().trim();
-    if (!key || set.has(key)) return;
+    const skillTitle = item.skillName || item.name || '';
+    const key = skillTitle.toLowerCase().trim();
+    if (!key) return;
+
+    const normalizedItem = {
+      ...item,
+      name: skillTitle,
+      skillName: skillTitle,
+      status: item.status || item.currentStatus,
+      currentStatus: item.currentStatus || item.status,
+      sources: item.source ? [item.source] : [],
+    };
+
+    if (set.has(key)) {
+      const existing = list.find((s) => (s.skillName || s.name || '').toLowerCase().trim() === key);
+      if (existing) {
+        if (item.source && !existing.sources?.includes(item.source)) {
+          existing.sources = existing.sources ? [...existing.sources, item.source] : [existing.source, item.source];
+          existing.source = `${existing.source}, ${item.source}`;
+        }
+        if (item.evidence && existing.evidence && !existing.evidence.includes(item.evidence)) {
+          existing.evidence = `${existing.evidence} · ${item.evidence}`;
+        }
+      }
+      return;
+    }
+
     set.add(key);
-    list.push(item);
+    list.push(normalizedItem);
   };
 
   // 1. Phase 4 Job Match Matched Skills -> Strong Skills
@@ -182,10 +207,14 @@ const aggregateSkillIntelligence = ({
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([skill, count]) => ({
+      name: skill,
       skillName: skill,
       occurrenceCount: count,
       demandLevel: count >= 3 ? 'Very High' : count >= 2 ? 'High' : 'Moderate',
+      status: count >= 3 ? 'Very High Demand' : count >= 2 ? 'High Demand' : 'In Demand',
+      currentStatus: count >= 3 ? 'Very High Demand' : count >= 2 ? 'High Demand' : 'In Demand',
       isPossessed: seenStrong.has(skill.toLowerCase()),
+      evidence: `Required in ${count} target job posting${count === 1 ? '' : 's'} across saved roles.`,
       recommendedAction: seenStrong.has(skill.toLowerCase())
         ? 'Already featured in your profile; highlight in interviews.'
         : 'Prioritize learning this widely required skill.',

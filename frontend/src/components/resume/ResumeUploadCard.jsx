@@ -27,7 +27,6 @@ const ResumeUploadCard = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Handle selected file validation and state
   const handleFile = (file) => {
     setValidationError('');
     if (onClearError) onClearError();
@@ -88,211 +87,149 @@ const ResumeUploadCard = ({
   const displayError = validationError || error;
 
   return (
-    <Card className="border-slate-200">
+    <Card className="border-brand-border">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+      <div className="flex items-center justify-between pb-4 border-b border-brand-border/70">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-brand-forestLight text-brand-primary flex items-center justify-center shadow-soft-xs">
               <UploadCloud className="w-4 h-4" />
             </div>
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-lg font-heading font-bold text-brand-charcoal">
               {isReplacement ? 'Upload New Resume Version' : 'Upload Your Resume'}
             </h2>
           </div>
-          <p className="text-xs text-slate-500">
-            {isReplacement
-              ? 'Uploading a new PDF will replace your currently parsed resume and re-analyze all sections.'
-              : 'Upload your resume in PDF format to extract skills, experience, education, and career insights.'}
+          <p className="text-xs text-brand-muted">
+            Drop your PDF resume to extract skills, work history, projects, and education automatically.
           </p>
         </div>
 
         {isReplacement && onCancel && (
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
+            type="button"
             onClick={onCancel}
             disabled={isUploading}
+            className="text-xs font-heading font-medium text-brand-muted hover:text-brand-charcoal flex items-center gap-1 transition-colors"
           >
-            Cancel
-          </Button>
+            <X className="w-4 h-4" />
+            <span>Cancel</span>
+          </button>
         )}
       </div>
 
-      {/* Error Banner */}
-      {displayError && (
-        <div className="mt-4 p-3.5 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3 text-red-700 text-sm">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600" />
-          <div className="flex-1">
-            <span className="font-semibold block text-xs uppercase tracking-wide text-red-800">
-              Upload Error
-            </span>
-            <span className="text-xs">{displayError}</span>
+      {/* Upload Zone */}
+      <div className="mt-5 space-y-4">
+        {displayError && (
+          <div className="p-3.5 rounded-xl bg-red-50/70 border border-brand-danger/30 flex items-start gap-2.5 text-brand-danger text-xs font-medium">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">{displayError}</div>
           </div>
-          <button
-            onClick={() => {
-              setValidationError('');
-              if (onClearError) onClearError();
-            }}
-            className="text-red-400 hover:text-red-600"
-            aria-label="Dismiss error"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Upload Drop Zone */}
-      <div className="mt-6">
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => !isUploading && fileInputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer select-none ${
+          className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center transition-all duration-200 cursor-pointer ${
             isDragOver
-              ? 'border-brand-primary bg-sky-50/60 ring-4 ring-sky-100'
-              : selectedFile
-              ? 'border-emerald-300 bg-emerald-50/30'
-              : 'border-slate-300 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50'
-          } ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}
+              ? 'border-brand-primary bg-brand-forestLight/50 scale-[1.005]'
+              : 'border-brand-border bg-brand-bg hover:border-brand-sageBorder hover:bg-brand-forestLight/20'
+          } ${isUploading ? 'pointer-events-none opacity-60' : ''}`}
         >
           <input
             ref={fileInputRef}
             type="file"
-            accept="application/pdf,.pdf"
-            className="hidden"
+            accept=".pdf,application/pdf"
             onChange={handleInputChange}
+            className="hidden"
             disabled={isUploading}
           />
 
           <div className="flex flex-col items-center justify-center space-y-3">
-            <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                isDragOver
-                  ? 'bg-brand-primary text-white scale-110 shadow-lg'
-                  : selectedFile
-                  ? 'bg-emerald-500 text-white'
-                  : 'bg-white text-slate-500 border border-slate-200 shadow-sm'
-              }`}
-            >
-              {selectedFile ? (
-                <FileCheck className="w-7 h-7" />
-              ) : (
-                <UploadCloud className="w-7 h-7" />
-              )}
+            <div className="w-14 h-14 rounded-2xl bg-white border border-brand-border shadow-soft-xs flex items-center justify-center text-brand-primary">
+              <UploadCloud className="w-7 h-7" />
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-800">
-                {selectedFile ? (
-                  <span className="text-emerald-700">Resume ready for processing</span>
-                ) : (
-                  <>
-                    <span className="text-brand-primary hover:underline">Click to browse</span> or drag and drop your resume
-                  </>
-                )}
+              <p className="text-sm font-heading font-bold text-brand-charcoal">
+                <span className="text-brand-primary hover:underline">Click to upload</span> or drag and drop your resume
               </p>
-              <p className="text-xs text-slate-500">
-                PDF documents only (max file size 5 MB)
+              <p className="text-xs text-brand-muted">
+                PDF format only, maximum file size 5MB
               </p>
+            </div>
+
+            <div className="flex items-center gap-4 text-[11px] text-brand-muted pt-2">
+              <span className="flex items-center gap-1 font-medium">
+                <FileCheck className="w-3.5 h-3.5 text-brand-primary" />
+                Automatic ATS Parser
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1 font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
+                Phone & Email Extraction
+              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Selected File Details & Upload Action */}
-      {selectedFile && (
-        <div className="mt-4 p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+        {/* Selected file preview */}
+        {selectedFile && !isUploading && (
+          <div className="p-4 rounded-xl bg-brand-bg border border-brand-border flex items-center justify-between gap-4 animate-in fade-in-50 duration-150">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white border border-brand-border text-brand-danger flex items-center justify-center flex-shrink-0 shadow-soft-xs">
                 <FileText className="w-5 h-5" />
               </div>
-              <div className="overflow-hidden">
-                <p className="text-sm font-semibold text-slate-900 truncate" title={selectedFile.name}>
+              <div className="min-w-0">
+                <p className="text-xs font-heading font-bold text-brand-charcoal truncate" title={selectedFile.name}>
                   {selectedFile.name}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
-                  <span className="font-mono">{formatFileSize(selectedFile.size)}</span>
-                  <span>•</span>
-                  <span className="uppercase text-[10px] font-bold text-slate-400">PDF</span>
-                </div>
+                <p className="text-[11px] text-brand-muted font-mono">
+                  {formatFileSize(selectedFile.size)}
+                </p>
               </div>
             </div>
 
-            {!isUploading && (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-                title="Remove selection"
+                className="p-1.5 rounded-lg text-brand-muted hover:text-brand-charcoal hover:bg-white transition-colors"
+                title="Remove file"
               >
                 <X className="w-4 h-4" />
               </button>
-            )}
-          </div>
-
-          {/* Upload Progress Bar (when uploading) */}
-          {isUploading && (
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-brand-primary flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                  {uploadProgress < 100
-                    ? `Uploading file (${uploadProgress}%)...`
-                    : 'Extracting text & analyzing structure...'}
-                </span>
-                <span className="font-semibold text-slate-700">{uploadProgress}%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                <div
-                  className="bg-brand-primary h-2.5 rounded-full transition-all duration-300 ease-out"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-2">
-            {!isUploading && (
               <Button
-                variant="outline"
+                variant="primary"
                 size="sm"
-                onClick={handleClearSelection}
+                onClick={handleStartUpload}
+                icon={UploadCloud}
               >
-                Choose Different File
+                Upload & Parse
               </Button>
-            )}
-            <Button
-              variant="secondary"
-              size="md"
-              icon={Sparkles}
-              isLoading={isUploading}
-              disabled={isUploading}
-              onClick={handleStartUpload}
-            >
-              {isReplacement ? 'Replace & Parse Resume' : 'Upload & Parse Resume'}
-            </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Feature Highlights Footer */}
-      <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-500">
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <span>Automatic Text Extraction</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <span>Categorized Skill Tagging</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <span>Isolated User Storage</span>
-        </div>
+        {/* Upload progress state */}
+        {isUploading && (
+          <div className="p-4 rounded-xl bg-brand-forestLight/40 border border-brand-sageBorder/60 space-y-2.5">
+            <div className="flex items-center justify-between text-xs font-heading font-semibold text-brand-primary">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                Uploading & Parsing PDF Resume...
+              </span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-brand-border overflow-hidden">
+              <div
+                className="h-full bg-brand-primary rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

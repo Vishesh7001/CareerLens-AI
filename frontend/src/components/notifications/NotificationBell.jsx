@@ -21,7 +21,6 @@ const NotificationBell = () => {
 
   useEffect(() => {
     fetchUnreadCount();
-    // Poll unread count every 60 seconds
     const interval = setInterval(fetchUnreadCount, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -31,13 +30,13 @@ const NotificationBell = () => {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative p-2 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        className="relative p-2 rounded-xl text-brand-slate hover:text-brand-charcoal hover:bg-brand-bg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
         title="Notifications"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-black text-white bg-rose-500 rounded-full border-2 border-white animate-pulse">
+          <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-heading font-bold text-white bg-brand-danger rounded-full border-2 border-white shadow-soft-xs">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

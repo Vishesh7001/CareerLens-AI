@@ -970,6 +970,379 @@ def generate_career_recommendations(
 # -------------------------------------------------------------
 # Phase 4.6: Personalized Learning Roadmap Generator
 # -------------------------------------------------------------
+def get_beginner_friendly_weekly_module(skill_name: str, week_num: int, total_weeks: int, job_title: str, target_skills: List[str]) -> Dict[str, Any]:
+    norm = (skill_name or "").lower().strip()
+    is_final_week = week_num == total_weeks and total_weeks >= 3
+
+    if is_final_week:
+        focus_roles = ", ".join(target_skills[:3]) if target_skills else "core technical tools"
+        return {
+            "title": f"Week {week_num}: Build Your {job_title} Showcase Project",
+            "learning_objective": f"Combine everything you learned into one complete project you can proudly put on your resume and show to employers.",
+            "skill_to_learn": f"{job_title} Portfolio Project",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                f"Plan a practical application that solves an everyday problem using {focus_roles}",
+                "Connect your user interface, backend logic, and data storage into one working system",
+                "Write a clear, friendly README file with project screenshots, features, and setup steps",
+                "Practice explaining your project in simple, natural words for upcoming interviews",
+            ],
+            "practical_exercises": [
+                "Test all buttons, forms, and pages to make sure there are no broken links or errors",
+                "Deploy your project to a free hosting service so anyone can test it with a live link",
+                'Practice answering: "What does this project do and what was the most interesting part you built?"',
+            ],
+            "suggested_mini_projects": [
+                f"Complete {job_title} showcase project with a live web link and public GitHub repository",
+            ],
+            "expected_outcome": "You will have an impressive, working portfolio project that demonstrates your hands-on skills to recruiters.",
+        }
+
+    # 1. APIs / RESTful APIs
+    if "api" in norm or "rest" in norm or "endpoint" in norm:
+        return {
+            "title": f"Week {week_num}: Learn API Basics and Connect Services",
+            "learning_objective": "Understand how applications talk to each other and learn how to fetch, send, and display data using web APIs.",
+            "skill_to_learn": "RESTful APIs",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand what an API is and why modern websites and mobile apps use them",
+                "Learn how common requests work: GET (view data), POST (create data), PUT (update), and DELETE (remove)",
+                "Learn how to read and write JSON data, the universal language of web applications",
+                "Use beginner-friendly tools like Postman to test sending and receiving API requests",
+            ],
+            "practical_exercises": [
+                "Send your first GET request to a free public API (such as weather or quote data) using Postman",
+                "Build a simple API endpoint that receives user data and responds with a friendly JSON message",
+                "Test what happens when requested data is missing, returning a standard 404 error code",
+            ],
+            "suggested_mini_projects": [
+                "Build a simple application that fetches live data from an API and displays it on screen",
+            ],
+            "expected_outcome": "You will understand how web APIs work and be able to connect your application to external services with confidence.",
+        }
+
+    # 2. Docker / Containers
+    if "docker" in norm or "container" in norm:
+        return {
+            "title": f"Week {week_num}: Learn Docker Basics and Run Apps in Containers",
+            "learning_objective": "Understand what Docker does and learn how to run your application inside an isolated, reliable container.",
+            "skill_to_learn": "Docker & Containers",
+            "priority": "High" if week_num <= 2 else "Medium",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                'Learn what containers are and why developers use Docker to make sure apps run the same way everywhere',
+                "Install Docker Desktop on your computer and learn essential starter commands",
+                "Understand what a Dockerfile is and how it tells Docker how to package your code and tools",
+                "Learn how Docker Compose launches both your web app and a database together with one command",
+            ],
+            "practical_exercises": [
+                "Write a simple 5-line Dockerfile for a sample project on your machine",
+                "Build a Docker image and run it locally in your browser",
+                "Practice viewing running containers and stopping them from the terminal or Docker Desktop",
+            ],
+            "suggested_mini_projects": [
+                "Package a small web application inside Docker so anyone can run it on their computer with one command",
+            ],
+            "expected_outcome": "You will understand how Docker works and be able to run and share containerized apps with ease.",
+        }
+
+    # 3. React / Frontend UI
+    if "react" in norm or "frontend" in norm or "ui" in norm:
+        return {
+            "title": f"Week {week_num}: Build Interactive User Interfaces with React",
+            "learning_objective": "Learn the fundamental building blocks of React and create interactive, modern web pages with reusable components.",
+            "skill_to_learn": "React",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand how React breaks web pages into reusable pieces called components (like buttons, navbars, and cards)",
+                "Learn JSX syntax, which allows writing HTML-like code directly inside your JavaScript files",
+                "Learn how useState holds dynamic information that changes when users click, type, or interact",
+                "Learn how props allow parent components to pass data and instructions down to child components",
+            ],
+            "practical_exercises": [
+                "Build a small interactive counter with plus and minus buttons to practice useState",
+                "Create a reusable ProductCard component that displays an image, title, price, and buy button",
+                "Render a list of items dynamically on the screen using JavaScript's map function in React",
+            ],
+            "suggested_mini_projects": [
+                "Build an interactive To-Do List or Recipe App with add, mark as complete, and delete actions",
+            ],
+            "expected_outcome": "You will be able to build dynamic, responsive web interfaces using modern React components.",
+        }
+
+    # 4. Node.js / Express / Backend
+    if "node" in norm or "express" in norm or "backend" in norm or "server" in norm:
+        return {
+            "title": f"Week {week_num}: Build Your First Backend Server with Node.js and Express",
+            "learning_objective": "Learn how backend servers work and build your own web server that handles user requests and URLs.",
+            "skill_to_learn": "Node.js & Express",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand the role of backend servers in processing business logic and protecting sensitive data",
+                "Set up a Node.js project using npm init and install the Express library",
+                "Learn how Express routes handle visits to different pages and URLs like /users or /products",
+                "Understand how request and response objects send HTML or JSON back to the browser",
+            ],
+            "practical_exercises": [
+                "Create a basic Express server that listens on port 5000 and responds to visit requests",
+                "Create a GET /api/items endpoint that returns a list of items as JSON",
+                "Create a POST /api/items endpoint that accepts new items sent from a form or API client",
+            ],
+            "suggested_mini_projects": [
+                "Build a Notes or Task Manager API that lets users view, create, and delete notes",
+            ],
+            "expected_outcome": "You will know how to create backend servers and build REST API endpoints from scratch.",
+        }
+
+    # 5. Databases / MongoDB / SQL / PostgreSQL
+    if "mongo" in norm or "sql" in norm or "database" in norm or "postgres" in norm:
+        return {
+            "title": f"Week {week_num}: Store and Manage Application Data with Databases",
+            "learning_objective": "Learn how databases store information permanently and how to connect your backend application to a database.",
+            "skill_to_learn": skill_name,
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand why applications need persistent databases instead of storing data in temporary variables",
+                "Learn the four core database operations (CRUD): Create, Read, Update, and Delete",
+                "Set up a free cloud database (like MongoDB Atlas or Supabase PostgreSQL)",
+                "Learn how to connect your backend code to the database using an easy library (Mongoose or Prisma)",
+            ],
+            "practical_exercises": [
+                "Connect your backend server to your database and test saving your first document",
+                "Write queries to find specific records (such as finding all users created today)",
+                "Update an existing record and verify the change in your database dashboard",
+            ],
+            "suggested_mini_projects": [
+                "Build a Contact Book API that stores, updates, and searches contact cards in a real database",
+            ],
+            "expected_outcome": "You will be able to connect any application to a real database and perform all essential data operations.",
+        }
+
+    # 6. Testing / QA / Unit Testing
+    if "test" in norm or "qa" in norm or "jest" in norm:
+        return {
+            "title": f"Week {week_num}: Test Your Code to Prevent Bugs and Errors",
+            "learning_objective": "Learn how to write simple automated tests so you can be confident your code works properly before deploying.",
+            "skill_to_learn": "Automated Testing",
+            "priority": "Medium",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand why testing saves time and prevents embarrassing bugs in production",
+                "Learn what a unit test is: a small script that tests one specific function or feature",
+                "Explore common testing tools and learn how to write test cases with assert or expect",
+                "Learn how to test both normal inputs (happy path) and edge cases (like empty inputs or invalid numbers)",
+            ],
+            "practical_exercises": [
+                "Write 3 unit tests for a simple calculator or string-formatting function",
+                "Test an API endpoint to verify it returns a 200 success status when given valid data",
+                "Test that an API endpoint properly rejects missing inputs with a helpful 400 error message",
+            ],
+            "suggested_mini_projects": [
+                "Add automated test coverage to an existing project and verify all tests pass with one command",
+            ],
+            "expected_outcome": "You will be able to write automated tests that catch bugs early and prove your code is reliable.",
+        }
+
+    # 7. Git / GitHub
+    if "git" in norm or "version control" in norm:
+        return {
+            "title": f"Week {week_num}: Track Code Changes and Collaborate with Git & GitHub",
+            "learning_objective": "Master version control basics so you never lose your work and can showcase your code on GitHub.",
+            "skill_to_learn": "Git & GitHub",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand what version control is and why every software developer uses Git daily",
+                "Learn the primary Git commands: git init, git add, git commit, and git push",
+                "Create a GitHub account and push your first local repository to the cloud",
+                "Learn how Git branches let you experiment on new features without breaking your main code",
+            ],
+            "practical_exercises": [
+                "Initialize a Git repository, make 3 meaningful commits with clear messages, and push to GitHub",
+                "Create a new branch, add a feature, commit it, and merge it back into main",
+                "Write a clean README.md file explaining what your project does with screenshots",
+            ],
+            "suggested_mini_projects": [
+                "Publish a polished project repository on GitHub with clean commit history and setup instructions",
+            ],
+            "expected_outcome": "You will be able to comfortably save, track, and showcase all your code on GitHub like a professional.",
+        }
+
+    # 8. Cloud / Deployment
+    if "cloud" in norm or "aws" in norm or "deploy" in norm or "ci/cd" in norm or "devops" in norm:
+        return {
+            "title": f"Week {week_num}: Deploy Your Application to the Live Internet",
+            "learning_objective": "Learn how to host your application on the web so anyone with a link can use it from anywhere.",
+            "skill_to_learn": "Cloud Deployment",
+            "priority": "Medium",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand the difference between running an app on your local machine vs. hosting it in the cloud",
+                "Explore beginner-friendly hosting platforms (like Vercel, Render, or Netlify)",
+                "Learn how environment variables keep secret passwords and database keys safe in production",
+                "Connect your GitHub repository to a hosting platform for automatic deployments on push",
+            ],
+            "practical_exercises": [
+                "Deploy a frontend web app on Vercel or Netlify and get a public live URL",
+                "Deploy a backend API server on Render and test it using a public link",
+                "Configure environment variables on your hosting dashboard so your live app connects to your database",
+            ],
+            "suggested_mini_projects": [
+                "Deploy a complete full-stack web application with a live URL to share on your resume and LinkedIn",
+            ],
+            "expected_outcome": "You will know how to take any web project from your computer and deploy it live to the internet.",
+        }
+
+    # 9. Python
+    if "python" in norm:
+        return {
+            "title": f"Week {week_num}: Python Fundamentals and Helpful Automation Scripts",
+            "learning_objective": "Learn Python syntax, essential data structures, and how to write scripts that automate everyday tasks.",
+            "skill_to_learn": "Python",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Learn Python syntax: variables, conditionals (if/else), loops, and functions",
+                "Master Python's built-in data collections: lists, dictionaries, and sets",
+                "Learn how to read and write files (text, CSV, JSON) on your computer using Python",
+                "Install useful third-party packages using pip (Python's package installer)",
+            ],
+            "practical_exercises": [
+                "Write a script that counts word frequencies in a text document",
+                "Write a function that reads a CSV file and calculates the average value of a column",
+                "Create a simple interactive quiz program that asks users questions and calculates their score",
+            ],
+            "suggested_mini_projects": [
+                "Build an automated file organizer that sorts files on your computer into folders by extension",
+            ],
+            "expected_outcome": "You will have a strong grasp of Python programming and be able to automate everyday file and data tasks.",
+        }
+
+    # 10. Data Analysis / Pandas
+    if "pandas" in norm or "data analysis" in norm or "numpy" in norm:
+        return {
+            "title": f"Week {week_num}: Explore and Clean Real-World Data with Pandas",
+            "learning_objective": "Learn how to load, filter, clean, and analyze spreadsheets and datasets using Python and Pandas.",
+            "skill_to_learn": "Data Analysis with Pandas",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Understand what Pandas is and how its DataFrames represent tables of data",
+                "Learn how to load CSV, Excel, and JSON data files into Pandas with one line of code",
+                "Learn how to inspect datasets: check column types, summary statistics, and missing values",
+                "Learn how to filter rows and select columns based on conditions (like sales > 1000)",
+            ],
+            "practical_exercises": [
+                "Load a real dataset (like student test scores or movie ratings) and find the top 5 highest values",
+                "Clean missing or null data by filling values or removing empty rows",
+                "Group data by category (using groupby) and compute totals and averages",
+            ],
+            "suggested_mini_projects": [
+                "Build an Exploratory Data Analysis report answering 5 interesting questions about a real dataset",
+            ],
+            "expected_outcome": "You will be able to take messy spreadsheets and datasets, clean them up, and extract useful insights.",
+        }
+
+    # 11. JavaScript / TypeScript
+    if "javascript" in norm or "typescript" in norm or "js" in norm or "ts" in norm:
+        return {
+            "title": f"Week {week_num}: JavaScript Essentials and Modern Syntax",
+            "learning_objective": "Master core JavaScript concepts that power modern web and frontend development.",
+            "skill_to_learn": "JavaScript Essentials",
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                "Learn modern JavaScript syntax: const/let, arrow functions, template strings, and destructuring",
+                "Understand how asynchronous code works: Promises, async/await, and fetching web data",
+                "Learn how JavaScript interacts with web pages: listening for button clicks and updating HTML",
+                "Understand how to avoid common beginner bugs using console.log and basic browser developer tools",
+            ],
+            "practical_exercises": [
+                "Write an async function that fetches data from an API and logs the result",
+                "Filter and transform an array of student objects using map and filter",
+                "Build a simple form validation function that checks if an email contains an @ symbol",
+            ],
+            "suggested_mini_projects": [
+                "Build an interactive currency converter or tip calculator in the browser",
+            ],
+            "expected_outcome": "You will have a solid foundation in modern JavaScript and be ready to learn web frameworks like React or Node.js.",
+        }
+
+    # 12. Dynamic Beginner-Friendly Fallback for Any Other Custom Role / Skill
+    if week_num == 1:
+        return {
+            "title": f"Week 1: Learn {skill_name} Basics and Set Up Your Environment",
+            "learning_objective": f"Understand what {skill_name} is, why developers use it, and set up your workspace to write your first code.",
+            "skill_to_learn": skill_name,
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                f"Learn the basic concepts of {skill_name} and how it fits into modern software development",
+                "Install the necessary software, code editor plugins, and tools on your computer",
+                "Read simple examples and understand common patterns used by developers",
+                "Learn how to look up documentation and troubleshoot error messages when you get stuck",
+            ],
+            "practical_exercises": [
+                f"Write a simple beginner exercise exploring the basic features of {skill_name}",
+                "Test making small changes to see how the output changes",
+                "Practice fixing a deliberate typo or error to get comfortable with debugging",
+            ],
+            "suggested_mini_projects": [
+                f"Build a small starter project demonstrating the fundamental features of {skill_name}",
+            ],
+            "expected_outcome": f"You will feel comfortable with the core ideas of {skill_name} and be ready to build more complex features.",
+        }
+
+    if week_num == 2:
+        return {
+            "title": f"Week 2: Build Useful Features with {skill_name}",
+            "learning_objective": f"Take your knowledge of {skill_name} further by connecting it with data storage and handling user requests.",
+            "skill_to_learn": skill_name,
+            "priority": "High",
+            "estimated_duration": "1 Week (6-8 flexible hours)",
+            "learning_sequence": [
+                f"Learn how {skill_name} works together with databases and web services",
+                "Understand how to keep user data secure and organize your code into clean folders",
+                "Learn common design patterns that make your code easy to read and maintain",
+            ],
+            "practical_exercises": [
+                f"Build a feature that saves and retrieves data using {skill_name}",
+                "Test how your code handles invalid inputs or slow internet connections",
+            ],
+            "suggested_mini_projects": [
+                f"Build a practical mini-application powered by {skill_name} that solves an everyday task",
+            ],
+            "expected_outcome": f"You will be able to build functional, well-organized features using {skill_name}.",
+        }
+
+    return {
+        "title": f"Week {week_num}: Test, Improve, and Package Your {skill_name} Project",
+        "learning_objective": f"Make your project reliable, fix errors, and learn how developers prepare code for real users.",
+        "skill_to_learn": skill_name,
+        "priority": "Medium",
+        "estimated_duration": "1 Week (6-8 flexible hours)",
+        "learning_sequence": [
+            "Learn how to test your code automatically so you don't have to check everything by hand",
+            "Understand how to package your application so it runs easily on any computer",
+            "Learn simple ways to speed up your code and organize your files neatly",
+        ],
+        "practical_exercises": [
+            "Write 3 simple tests to verify your project works under different conditions",
+            "Clean up your code, add helpful comments, and test running it in a clean environment",
+        ],
+        "suggested_mini_projects": [
+            f"Package and document your {skill_name} application with clear instructions so anyone can run it",
+        ],
+        "expected_outcome": "You will know how to write reliable, well-tested code and prepare applications for deployment.",
+    }
+
+
 def generate_learning_roadmap(
     resume_data: Dict[str, Any],
     job_description: str,
@@ -979,7 +1352,7 @@ def generate_learning_roadmap(
     duration_weeks: int = 4,
 ) -> RoadmapResponse:
     """
-    Generates a structured, progressive week-by-week learning roadmap
+    Generates a structured, beginner-friendly week-by-week learning roadmap
     specifically addressing the skills missing for the target job.
     """
     # 1. Determine key missing skills to address
@@ -1000,7 +1373,7 @@ def generate_learning_roadmap(
 
     # Default fallback skills if none were missing
     if not target_skills:
-        target_skills = ["RESTful APIs", "Docker & Containerization", "Unit Testing", "Cloud Deployment"]
+        target_skills = ["RESTful APIs", "Docker & Containerization", "Automated Testing", "Cloud Deployment"]
 
     # Limit to weeks requested
     num_weeks = max(2, min(duration_weeks, 8))
@@ -1009,93 +1382,26 @@ def generate_learning_roadmap(
     for i in range(num_weeks):
         skill_name = target_skills[i % len(target_skills)]
         week_num = i + 1
-
-        if week_num == 1:
-            title = f"Week 1: Core Fundamentals & Setup with {skill_name}"
-            objective = f"Establish a rock-solid foundation in {skill_name} and environment setup."
-            seq = [
-                f"Study official {skill_name} core architecture, documentation, and syntax patterns",
-                "Configure local development environment and run initial 'Hello World' experiments",
-                "Implement basic modules and error-handling routines",
-            ]
-            exercises = [
-                f"Build a standalone script or component exercising {skill_name} features",
-                "Write 3 test cases validating happy and edge-case execution",
-            ]
-            mini_projects = [
-                f"Interactive CLI or utility module leveraging {skill_name}"
-            ]
-            outcome = f"Confident command of {skill_name} syntax and configuration patterns."
-
-        elif week_num == 2:
-            title = f"Week 2: Advanced Patterns & Integration with {skill_name}"
-            objective = f"Deep dive into production architectural patterns and data handling with {skill_name}."
-            seq = [
-                f"Integrate {skill_name} with persistent storage or backend services",
-                "Implement secure input sanitization and structured logging",
-                "Refactor codebase into clean, decoupled service layers",
-            ]
-            exercises = [
-                "Implement a service class with error handling and retry logic",
-                "Benchmark and optimize memory or response latency",
-            ]
-            mini_projects = [
-                f"Service micro-app implementing {skill_name} with persistent database"
-            ]
-            outcome = f"Ability to write maintainable, production-ready code using {skill_name}."
-
-        elif week_num == 3:
-            title = f"Week 3: Testing, Containment & DevOps with {skill_name}"
-            objective = "Containerize, write automated tests, and prepare for CI/CD deployment."
-            seq = [
-                f"Write unit and integration tests covering the {skill_name} implementation",
-                "Create a multi-stage Dockerfile for lightweight, secure packaging",
-                "Configure GitHub Actions to automatically run tests on git push",
-            ]
-            exercises = [
-                "Achieve 80%+ test branch coverage on core logic",
-                "Build and run containerized image locally with docker-compose",
-            ]
-            mini_projects = [
-                "Containerized service with automated GitHub Actions CI workflow"
-            ]
-            outcome = "Enterprise-grade testing and containerization competence."
-
-        else:
-            title = f"Week {week_num}: Capstone Project & Interview Readiness"
-            objective = "Synthesize all learned skills into a comprehensive portfolio project."
-            seq = [
-                f"Design end-to-end full application integrating {', '.join(target_skills[:3])}",
-                "Write thorough technical README with architecture diagram, setup instructions, and API docs",
-                "Record a 2-minute Loom or video walkthrough and deploy live URL",
-            ]
-            exercises = [
-                "Perform self code-review and optimize database queries",
-                "Practice explaining system design tradeoffs out loud for technical interviews",
-            ]
-            mini_projects = [
-                f"Portfolio Capstone: Production {job_title} application featuring live demo and GitHub repo"
-            ]
-            outcome = "Job-ready capstone project ready to showcase to hiring managers."
+        module_data = get_beginner_friendly_weekly_module(skill_name, week_num, num_weeks, job_title, target_skills)
 
         items.append(
             RoadmapItem(
                 week_number=week_num,
-                title=title,
-                learning_objective=objective,
-                skill_to_learn=skill_name,
-                priority="High" if week_num <= 2 else "Medium",
-                estimated_duration="1 Week (8-10 hours)",
-                learning_sequence=seq,
-                practical_exercises=exercises,
-                suggested_mini_projects=mini_projects,
-                expected_outcome=outcome,
+                title=module_data["title"],
+                learning_objective=module_data["learning_objective"],
+                skill_to_learn=module_data.get("skill_to_learn", skill_name),
+                priority=module_data.get("priority", "High" if week_num <= 2 else "Medium"),
+                estimated_duration=module_data.get("estimated_duration", "1 Week (6-8 flexible hours)"),
+                learning_sequence=module_data["learning_sequence"],
+                practical_exercises=module_data["practical_exercises"],
+                suggested_mini_projects=module_data["suggested_mini_projects"],
+                expected_outcome=module_data["expected_outcome"],
             )
         )
 
     summary = (
-        f"A targeted {num_weeks}-week curriculum engineered to eliminate key qualification gaps for the "
-        f"{job_title} role at {company_name or 'your target employer'}."
+        f"A friendly, step-by-step {num_weeks}-week learning guide designed to help you master core skills for "
+        f"{job_title} at your own pace, with hands-on practice every week."
     )
 
     return RoadmapResponse(

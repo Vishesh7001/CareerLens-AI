@@ -14,19 +14,20 @@ const Button = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed select-none';
+  const baseStyles =
+    'inline-flex items-center justify-center font-heading font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98]';
 
   const variants = {
     primary:
-      'bg-brand-navy hover:bg-slate-800 text-white shadow-sm hover:shadow focus:ring-brand-navy',
+      'bg-brand-primary hover:bg-brand-primaryHover text-white shadow-soft-xs hover:shadow-soft focus:ring-brand-primary/30',
     secondary:
-      'bg-brand-primary hover:bg-brand-primaryHover text-white shadow-sm hover:shadow focus:ring-brand-primary',
+      'bg-brand-forestLight hover:bg-brand-sageLight text-brand-primary border border-brand-sageBorder/60 shadow-soft-xs focus:ring-brand-primary/20',
     outline:
-      'border border-brand-border bg-white text-brand-slate hover:bg-slate-50 hover:text-brand-navy focus:ring-brand-navy',
+      'border border-brand-border bg-white text-brand-charcoal hover:bg-brand-bg hover:border-brand-borderDark shadow-soft-xs focus:ring-brand-border',
     ghost:
-      'text-brand-slate hover:bg-slate-100 hover:text-brand-navy focus:ring-slate-300',
+      'text-brand-slate hover:bg-brand-bg hover:text-brand-charcoal focus:ring-brand-border',
     danger:
-      'bg-red-600 hover:bg-red-700 text-white shadow-sm focus:ring-red-500',
+      'bg-brand-danger hover:bg-red-700 text-white shadow-soft-xs focus:ring-brand-danger/30',
   };
 
   const sizes = {
@@ -48,11 +49,11 @@ const Button = ({
       {isLoading ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin text-current" />
-          <span>Loading...</span>
+          <span>Processing...</span>
         </>
       ) : (
         <>
-          {Icon && <Icon className="w-4 h-4" />}
+          {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
           {children}
         </>
       )}
@@ -61,4 +62,3 @@ const Button = ({
 };
 
 export default Button;
-

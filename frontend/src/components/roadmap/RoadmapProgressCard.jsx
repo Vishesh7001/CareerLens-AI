@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   CheckCircle2,
-  Circle,
   Calendar,
   Clock,
   Target,
@@ -38,27 +37,27 @@ const RoadmapProgressCard = ({
   return (
     <div className="space-y-6">
       {/* Overview & Progress Card */}
-      <Card className="border border-sky-100 bg-gradient-to-br from-white to-sky-50/30 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+      <Card className="border border-brand-border bg-white shadow-soft p-6 sm:p-8 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-brand-border/70 gap-3">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Personalized Learning Plan
+            <span className="text-xs font-heading font-bold uppercase tracking-wider text-brand-muted">
+              Step-by-Step Learning Guide
             </span>
-            <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+            <h2 className="text-xl sm:text-2xl font-heading font-bold text-brand-charcoal mt-0.5">
               {title}
             </h2>
             {companyName && (
-              <p className="text-xs text-brand-primary font-medium mt-0.5">
+              <p className="text-xs text-brand-primary font-heading font-semibold mt-0.5">
                 Targeting: {targetRole} @ {companyName}
               </p>
             )}
           </div>
 
           <div className="text-right self-start sm:self-auto">
-            <span className="text-2xl font-extrabold text-brand-primary">
+            <span className="text-3xl font-heading font-black text-brand-primary">
               {progressPercentage}%
             </span>
-            <span className="block text-[11px] text-slate-400">
+            <span className="block text-[11px] font-heading font-semibold text-brand-muted mt-0.5">
               {completedCount} of {totalWeeks} Weeks Done
             </span>
           </div>
@@ -66,11 +65,11 @@ const RoadmapProgressCard = ({
 
         {/* Progress Bar */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-            <span>Overall Roadmap Completion</span>
-            <span>{progressPercentage}%</span>
+          <div className="flex items-center justify-between text-xs font-heading font-semibold text-brand-charcoal">
+            <span>Your Learning Progress</span>
+            <span className="text-brand-primary">{progressPercentage}%</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200/80">
+          <div className="w-full bg-brand-bg rounded-full h-3 overflow-hidden border border-brand-border/60">
             <div
               className="h-full bg-brand-primary transition-all duration-700 ease-out rounded-full"
               style={{ width: `${progressPercentage}%` }}
@@ -79,7 +78,7 @@ const RoadmapProgressCard = ({
         </div>
 
         {summary && (
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          <p className="text-xs sm:text-sm text-brand-slate leading-relaxed">
             {summary}
           </p>
         )}
@@ -88,11 +87,11 @@ const RoadmapProgressCard = ({
       {/* Week-by-Week Curriculum */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-            Weekly Execution Modules ({items.length})
+          <h3 className="text-sm font-heading font-bold uppercase tracking-wider text-brand-charcoal">
+            Weekly Learning Plan ({items.length} Weeks)
           </h3>
-          <span className="text-xs text-slate-400">
-            Check off modules as you complete practical exercises
+          <span className="text-xs text-brand-muted">
+            Check off each week as you finish the practice tasks
           </span>
         </div>
 
@@ -108,8 +107,8 @@ const RoadmapProgressCard = ({
               data-testid={`week-card-${item.weekNumber}`}
               className={`border transition-all duration-200 ${
                 isDone
-                  ? 'border-emerald-200 bg-emerald-50/15'
-                  : 'border-slate-200/90 bg-white hover:border-slate-300'
+                  ? 'border-brand-sageBorder/60 bg-brand-forestLight/30 shadow-soft-xs'
+                  : 'border-brand-border bg-white hover:border-brand-borderDark shadow-soft'
               }`}
             >
               <div className="space-y-4">
@@ -129,10 +128,10 @@ const RoadmapProgressCard = ({
                       />
                       <label
                         htmlFor={`week-checkbox-${item.weekNumber}`}
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center cursor-pointer transition-all border-2 select-none ${
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center cursor-pointer transition-all border-2 select-none shadow-soft-xs ${
                           isDone
-                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
-                            : 'border-slate-300 hover:border-brand-primary bg-white text-transparent'
+                            ? 'bg-brand-primary border-brand-primary text-white'
+                            : 'border-brand-border hover:border-brand-primary bg-white text-transparent'
                         } ${isWeekUpdating ? 'opacity-60 cursor-not-allowed' : ''}`}
                         title={isDone ? 'Mark as incomplete' : 'Mark as completed'}
                       >
@@ -148,30 +147,30 @@ const RoadmapProgressCard = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         <label
                           htmlFor={`week-checkbox-${item.weekNumber}`}
-                          className={`cursor-pointer text-sm sm:text-base font-bold transition-colors ${
-                            isDone ? 'text-slate-800 line-through' : 'text-slate-900 hover:text-brand-primary'
+                          className={`cursor-pointer text-sm sm:text-base font-heading font-bold transition-colors ${
+                            isDone ? 'text-brand-muted line-through' : 'text-brand-charcoal hover:text-brand-primary'
                           }`}
                         >
                           {item.title}
                         </label>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        <span className="text-[10px] font-heading font-semibold px-2 py-0.5 rounded-full bg-brand-bg text-brand-charcoal border border-brand-border">
                           {item.priority} Priority
                         </span>
                         {isDone && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <span className="text-[10px] font-heading font-bold px-2 py-0.5 rounded-full bg-brand-forestLight text-brand-primary border border-brand-sageBorder/60">
                             Completed
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <div className="flex items-center gap-3 text-xs text-brand-muted mt-1">
+                        <span className="flex items-center gap-1 font-medium">
+                          <Clock className="w-3.5 h-3.5 text-brand-muted" />
                           {item.estimatedDuration}
                         </span>
-                        <span className="flex items-center gap-1 font-medium text-brand-primary">
+                        <span className="flex items-center gap-1 font-heading font-semibold text-brand-primary">
                           <Code2 className="w-3.5 h-3.5" />
-                          Skill: {item.skillToLearn}
+                          Focus Skill: {item.skillToLearn}
                         </span>
                       </div>
                     </div>
@@ -179,8 +178,8 @@ const RoadmapProgressCard = ({
                 </div>
 
                 {/* Objective */}
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs sm:text-sm text-slate-700">
-                  <strong className="text-slate-900 font-semibold">Objective: </strong>
+                <div className="p-3.5 rounded-xl bg-brand-bg border border-brand-border text-xs sm:text-sm text-brand-slate leading-relaxed">
+                  <strong className="text-brand-charcoal font-heading font-semibold">Weekly Goal: </strong>
                   {item.learningObjective}
                 </div>
 
@@ -189,10 +188,10 @@ const RoadmapProgressCard = ({
                   {/* Sequence */}
                   {item.learningSequence && item.learningSequence.length > 0 && (
                     <div className="space-y-1.5">
-                      <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                        Step-by-Step Sequence:
+                      <span className="block text-[11px] font-heading font-bold uppercase tracking-wider text-brand-muted">
+                        What to Learn:
                       </span>
-                      <ul className="space-y-1 text-xs text-slate-600">
+                      <ul className="space-y-1 text-xs text-brand-slate">
                         {item.learningSequence.map((seq, sIdx) => (
                           <li key={sIdx} className="flex items-start gap-2">
                             <span className="text-brand-primary font-bold">•</span>
@@ -206,13 +205,13 @@ const RoadmapProgressCard = ({
                   {/* Practical Exercises */}
                   {item.practicalExercises && item.practicalExercises.length > 0 && (
                     <div className="space-y-1.5">
-                      <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                        Hands-on Exercises:
+                      <span className="block text-[11px] font-heading font-bold uppercase tracking-wider text-brand-muted">
+                        Practice Tasks:
                       </span>
-                      <ul className="space-y-1 text-xs text-slate-600">
+                      <ul className="space-y-1 text-xs text-brand-slate">
                         {item.practicalExercises.map((ex, eIdx) => (
                           <li key={eIdx} className="flex items-start gap-2">
-                            <span className="text-emerald-600 font-bold">✓</span>
+                            <span className="text-brand-primary font-bold">✓</span>
                             <span>{ex}</span>
                           </li>
                         ))}
@@ -222,17 +221,17 @@ const RoadmapProgressCard = ({
                 </div>
 
                 {/* Mini-Projects & Outcome */}
-                <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600">
+                <div className="pt-2 border-t border-brand-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-brand-slate">
                   {item.suggestedMiniProjects && item.suggestedMiniProjects.length > 0 && (
                     <div>
-                      <strong className="text-slate-800">Mini-Project: </strong>
+                      <strong className="text-brand-charcoal font-heading font-semibold">Mini Project to Build: </strong>
                       <span>{item.suggestedMiniProjects[0]}</span>
                     </div>
                   )}
 
                   {item.expectedOutcome && (
-                    <div className="text-emerald-700 font-medium">
-                      <strong className="text-slate-800">Outcome: </strong>
+                    <div className="text-brand-primary font-heading font-medium">
+                      <strong className="text-brand-charcoal font-semibold">What You Will Be Able to Do: </strong>
                       {item.expectedOutcome}
                     </div>
                   )}

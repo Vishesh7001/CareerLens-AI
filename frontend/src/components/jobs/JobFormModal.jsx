@@ -1,235 +1,240 @@
 import React, { useState, useEffect } from 'react';
-import { X, Briefcase, Building, MapPin, Calendar, FileText, Loader2, Sparkles } from 'lucide-react';
+import { X, Briefcase, Building, MapPin, Calendar, FileText, AlertCircle } from 'lucide-react';
 import Button from '../common/Button';
+import Input from '../common/Input';
 
-const JOB_TYPES = ['Full-time', 'Internship', 'Entry-level', 'Part-time'];
+const JOB_TYPES = [
+  'Full-time',
+  'Part-time',
+  'Internship',
+  'Contract',
+  'Remote',
+  'Entry-Level',
+];
 
-const JobFormModal = ({ isOpen, onClose, onSave, initialData = null, isSaving = false }) => {
-  const [companyName, setCompanyName] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
-  const [jobType, setJobType] = useState('Full-time');
-  const [location, setLocation] = useState('Remote / Hybrid');
-  const [applicationDeadline, setApplicationDeadline] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [error, setError] = useState('');
+const JobFormModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  initialData = null,
+  isLoading = false,
+}) => {
+  const [formData, setFormData] = useState({
+    jobTitle: '',
+    companyName: '',
+    jobType: 'Full-time',
+    location: '',
+    applicationDeadline: '',
+    jobDescription: '',
+  });
+
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialData) {
-      setCompanyName(initialData.companyName || '');
-      setJobTitle(initialData.jobTitle || '');
-      setJobType(initialData.jobType || 'Full-time');
-      setLocation(initialData.location || 'Remote / Hybrid');
-      setApplicationDeadline(initialData.applicationDeadline || '');
-      setJobDescription(initialData.jobDescription || '');
+      setFormData({
+        jobTitle: initialData.jobTitle || '',
+        companyName: initialData.companyName || '',
+        jobType: initialData.jobType || 'Full-time',
+        location: initialData.location || '',
+        applicationDeadline: initialData.applicationDeadline || '',
+        jobDescription: initialData.jobDescription || '',
+      });
     } else {
-      setCompanyName('');
-      setJobTitle('');
-      setJobType('Full-time');
-      setLocation('Remote / Hybrid');
-      setApplicationDeadline('');
-      setJobDescription('');
+      setFormData({
+        jobTitle: '',
+        companyName: '',
+        jobType: 'Full-time',
+        location: '',
+        applicationDeadline: '',
+        jobDescription: '',
+      });
     }
-    setError('');
+    setErrors({});
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.jobTitle.trim()) {
+      newErrors.jobTitle = 'Job title is required';
+    }
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company name is required';
+    }
+    if (!formData.jobDescription.trim()) {
+      newErrors.jobDescription = 'Job description is required';
+    } else if (formData.jobDescription.trim().length < 20) {
+      newErrors.jobDescription = 'Job description should be at least 20 characters';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-
-    if (!companyName.trim()) {
-      setError('Company name is required.');
-      return;
-    }
-    if (!jobTitle.trim()) {
-      setError('Job title is required.');
-      return;
-    }
-    if (!jobDescription.trim() || jobDescription.trim().length < 10) {
-      setError('Job description must be at least 10 characters.');
-      return;
-    }
-    if (jobDescription.trim().length > 20000) {
-      setError('Job description cannot exceed 20,000 characters.');
-      return;
-    }
-
-    onSave({
-      companyName: companyName.trim(),
-      jobTitle: jobTitle.trim(),
-      jobType,
-      location: location.trim(),
-      applicationDeadline: applicationDeadline ? applicationDeadline.trim() : null,
-      jobDescription: jobDescription.trim(),
-    });
+    if (!validate() || isLoading) return;
+    onSave(formData);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/40 backdrop-blur-xs">
+      <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-soft-lg border border-brand-border animate-in zoom-in-95 duration-150 overflow-hidden">
+        {/* Header */}
+        <div className="p-5 sm:p-6 border-b border-brand-border/70 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-brand-forestLight text-brand-primary flex items-center justify-center shadow-soft-xs">
               <Briefcase className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base sm:text-lg font-heading font-bold text-brand-charcoal">
                 {initialData ? 'Edit Target Job' : 'Add Target Job Description'}
               </h3>
-              <p className="text-xs text-slate-500">
-                {initialData ? 'Update company details or job description text' : 'Paste details from a job posting for AI requirement extraction'}
+              <p className="text-xs text-brand-muted">
+                Extract skills and benchmark your resume against real requirements
               </p>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-brand-muted hover:text-brand-charcoal hover:bg-brand-bg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-              {error}
-            </div>
-          )}
-
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Company Name <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Building className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Google, Razorpay, TCS, Startup"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  maxLength={150}
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900"
-                />
-              </div>
-            </div>
+            <Input
+              label="Job Title"
+              name="jobTitle"
+              placeholder="e.g. Junior Full Stack Developer"
+              required
+              startIcon={Briefcase}
+              value={formData.jobTitle}
+              onChange={handleChange}
+              error={errors.jobTitle}
+              disabled={isLoading}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Job Title <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Briefcase className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Full Stack Developer, Frontend Intern"
-                  value={jobTitle}
-                  onChange={(e) => setJobTitle(e.target.value)}
-                  maxLength={150}
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900"
-                />
-              </div>
-            </div>
+            <Input
+              label="Company Name"
+              name="companyName"
+              placeholder="e.g. Stripe, Acme Corp"
+              required
+              startIcon={Building}
+              value={formData.companyName}
+              onChange={handleChange}
+              error={errors.companyName}
+              disabled={isLoading}
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs sm:text-sm font-heading font-medium text-brand-charcoal mb-1.5">
                 Job Type
               </label>
               <select
-                value={jobType}
-                onChange={(e) => setJobType(e.target.value)}
-                className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900"
+                name="jobType"
+                value={formData.jobType}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="block w-full rounded-xl border border-brand-border text-sm py-2.5 px-3 bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary shadow-soft-xs"
               >
                 {JOB_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Location
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="e.g. Bangalore, Remote, Hybrid"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  maxLength={150}
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900"
-                />
-              </div>
-            </div>
+            <Input
+              label="Location"
+              name="location"
+              placeholder="e.g. Remote, Bengaluru"
+              startIcon={MapPin}
+              value={formData.location}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Application Deadline
-              </label>
-              <div className="relative">
-                <Calendar className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="e.g. 30 Nov 2026 / Rolling"
-                  value={applicationDeadline}
-                  onChange={(e) => setApplicationDeadline(e.target.value)}
-                  maxLength={50}
-                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-slate-700">
-                Complete Job Description <span className="text-red-500">*</span>
-              </label>
-              <span className="text-[11px] text-slate-400 font-mono">
-                {jobDescription.length} / 20000 characters
-              </span>
-            </div>
-            <textarea
-              required
-              rows={8}
-              placeholder="Paste the full job posting from LinkedIn, Naukri, or the company career page. CareerLens AI will extract required vs preferred technical skills, qualifications, and responsibilities."
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              maxLength={20000}
-              className="w-full p-3 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900 placeholder:text-slate-400 shadow-2xs font-sans leading-relaxed"
+            <Input
+              label="Application Deadline"
+              name="applicationDeadline"
+              placeholder="e.g. 2026-12-31"
+              startIcon={Calendar}
+              value={formData.applicationDeadline}
+              onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
 
-          {/* Modal Footer */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={onClose}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="secondary"
-              size="md"
-              icon={Sparkles}
-              isLoading={isSaving}
-              disabled={isSaving}
-            >
-              {isSaving ? 'Processing & Saving...' : initialData ? 'Update Job' : 'Save & Extract Requirements'}
-            </Button>
+          {/* Job Description Textarea */}
+          <div className="space-y-1.5">
+            <label className="block text-xs sm:text-sm font-heading font-medium text-brand-charcoal">
+              Job Description / Requirements <span className="text-brand-danger">*</span>
+            </label>
+            <textarea
+              name="jobDescription"
+              rows={6}
+              value={formData.jobDescription}
+              onChange={handleChange}
+              disabled={isLoading}
+              placeholder="Paste the full job description, responsibilities, technical requirements, and qualifications here..."
+              className={`w-full p-3.5 text-xs sm:text-sm rounded-xl border bg-white focus:outline-none focus:ring-2 transition-all leading-relaxed shadow-soft-xs ${
+                errors.jobDescription
+                  ? 'border-brand-danger/60 focus:ring-brand-danger/20 text-brand-charcoal'
+                  : 'border-brand-border focus:ring-brand-primary/20 focus:border-brand-primary text-brand-charcoal'
+              }`}
+            />
+            {errors.jobDescription && (
+              <p className="text-xs text-brand-danger flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{errors.jobDescription}</span>
+              </p>
+            )}
+            <div className="flex justify-between text-[11px] text-brand-muted">
+              <span>Our NLP extractor identifies required vs preferred competencies</span>
+              <span>{formData.jobDescription.length} characters</span>
+            </div>
           </div>
         </form>
+
+        {/* Modal Footer */}
+        <div className="p-4 sm:p-5 border-t border-brand-border/70 flex items-center justify-end gap-3 bg-brand-bg">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            onClick={handleSubmit}
+            isLoading={isLoading}
+          >
+            {initialData ? 'Save Changes' : 'Create & Parse Job'}
+          </Button>
+        </div>
       </div>
     </div>
   );

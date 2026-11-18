@@ -6,9 +6,7 @@ import OverviewStats from '../components/dashboard/OverviewStats';
 import CareerReadinessCard from '../components/dashboard/CareerReadinessCard';
 import CareerProgressCard from '../components/dashboard/CareerProgressCard';
 import SkillIntelligenceCard from '../components/dashboard/SkillIntelligenceCard';
-import AnalyticsCharts from '../components/dashboard/AnalyticsCharts';
 import CareerRecommendations from '../components/dashboard/CareerRecommendations';
-import RecentActivity from '../components/dashboard/RecentActivity';
 import ResumeSection from '../components/resume/ResumeSection';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Card from '../components/common/Card';
@@ -20,7 +18,6 @@ const DashboardPage = () => {
 
   const [overviewData, setOverviewData] = useState(null);
   const [skillIntelligence, setSkillIntelligence] = useState(null);
-  const [analyticsData, setAnalyticsData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -28,10 +25,9 @@ const DashboardPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [overviewRes, skillsRes, analyticsRes] = await Promise.all([
+      const [overviewRes, skillsRes] = await Promise.all([
         dashboardService.getOverview(),
         dashboardService.getSkillIntelligence(),
-        dashboardService.getAnalytics(),
       ]);
 
       if (overviewRes?.success) {
@@ -39,9 +35,6 @@ const DashboardPage = () => {
       }
       if (skillsRes?.success) {
         setSkillIntelligence(skillsRes.skills);
-      }
-      if (analyticsRes?.success) {
-        setAnalyticsData(analyticsRes.analytics);
       }
     } catch (err) {
       console.error('[Dashboard] Error fetching dashboard data:', err);
@@ -62,7 +55,7 @@ const DashboardPage = () => {
       <div className="py-24 flex flex-col items-center justify-center space-y-4">
         <LoadingSpinner size="lg" />
         <span className="text-xs font-semibold text-slate-500 animate-pulse">
-          Synthesizing Career Intelligence & Dashboard Analytics...
+          Synthesizing Career Intelligence & Dashboard Insights...
         </span>
       </div>
     );
@@ -87,14 +80,13 @@ const DashboardPage = () => {
 
   const stats = overviewData?.stats || {};
   const careerReadiness = overviewData?.careerReadiness || {};
-  const recentActivities = overviewData?.recentActivities || [];
   const recommendations = overviewData?.recommendations || [];
 
   // Determine top next action URL
   const nextActionUrl = recommendations[0]?.actionUrl || '/mock-interview';
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-5 pb-10">
       {/* 1. Welcome Section & Quick Actions */}
       <WelcomeSection
         user={user}
@@ -114,16 +106,10 @@ const DashboardPage = () => {
       {/* 5. Unified Skill Intelligence Card */}
       <SkillIntelligenceCard skillIntelligence={skillIntelligence || {}} />
 
-      {/* 6. Career Progress Analytics History Charts */}
-      <AnalyticsCharts analytics={analyticsData || {}} />
-
-      {/* 7. Personalized Career Recommendations */}
+      {/* 6. Personalized Career Recommendations */}
       <CareerRecommendations recommendations={recommendations} />
 
-      {/* 8. Recent Activities Timeline */}
-      <RecentActivity activities={recentActivities} />
-
-      {/* 9. Preserved Phase 2 Resume Management Dropzone & Details */}
+      {/* 7. Preserved Phase 2 Resume Management Dropzone & Details */}
       <div id="resume-section">
         <ResumeSection />
       </div>

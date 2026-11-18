@@ -30,17 +30,17 @@ const Input = forwardRef(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-slate-700 mb-1.5"
+            className="block text-xs sm:text-sm font-heading font-medium text-brand-charcoal mb-1.5"
           >
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="text-brand-danger ml-1">*</span>}
           </label>
         )}
 
-        <div className="relative rounded-lg shadow-sm">
+        <div className="relative rounded-xl">
           {StartIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-              <StartIcon className="h-5 w-5" aria-hidden="true" />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-muted">
+              <StartIcon className="h-4 w-4" aria-hidden="true" />
             </div>
           )}
 
@@ -54,14 +54,14 @@ const Input = forwardRef(
             disabled={disabled}
             placeholder={placeholder}
             autoComplete={autoComplete}
-            className={`block w-full rounded-lg border text-sm transition-colors duration-150 py-2.5 ${
+            className={`block w-full rounded-xl border text-sm transition-all duration-150 py-2.5 shadow-soft-xs ${
               StartIcon ? 'pl-10' : 'pl-3.5'
             } ${EndIcon ? 'pr-10' : 'pr-3.5'} ${
               error
-                ? 'border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                : 'border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary'
+                ? 'border-brand-danger/60 text-brand-charcoal bg-red-50/20 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-brand-danger/20 focus:border-brand-danger'
+                : 'border-brand-border text-brand-charcoal bg-white placeholder-brand-muted/70 hover:border-brand-borderDark focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary'
             } ${
-              disabled ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : 'bg-white'
+              disabled ? 'bg-brand-bg text-brand-muted cursor-not-allowed border-brand-border/60' : ''
             } ${className}`}
             {...props}
           />
@@ -71,26 +71,26 @@ const Input = forwardRef(
               type="button"
               onClick={onEndIconClick}
               disabled={disabled}
-              className={`absolute inset-y-0 right-0 pr-3 flex items-center ${
+              className={`absolute inset-y-0 right-0 pr-3.5 flex items-center ${
                 onEndIconClick
-                  ? 'text-slate-400 hover:text-slate-600 cursor-pointer focus:outline-none'
-                  : 'text-slate-400 pointer-events-none'
+                  ? 'text-brand-muted hover:text-brand-charcoal cursor-pointer focus:outline-none'
+                  : 'text-brand-muted pointer-events-none'
               }`}
               tabIndex={-1}
             >
-              <EndIcon className="h-5 w-5" aria-hidden="true" />
+              <EndIcon className="h-4 w-4" aria-hidden="true" />
             </button>
           )}
         </div>
 
         {error && (
-          <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1" id={`${inputId}-error`}>
+          <p className="mt-1.5 text-xs text-brand-danger flex items-center gap-1" id={`${inputId}-error`}>
             <span>{error}</span>
           </p>
         )}
 
         {!error && helperText && (
-          <p className="mt-1.5 text-xs text-slate-500">{helperText}</p>
+          <p className="mt-1.5 text-xs text-brand-muted">{helperText}</p>
         )}
       </div>
     );
@@ -100,4 +100,3 @@ const Input = forwardRef(
 Input.displayName = 'Input';
 
 export default Input;
-

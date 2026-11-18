@@ -7,9 +7,6 @@ import {
   Map,
   MessageSquareCode,
   ArrowRight,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
 } from 'lucide-react';
 import Card from '../common/Card';
 
@@ -25,27 +22,43 @@ const CareerProgressCard = ({ stats = {}, careerReadiness = {} }) => {
     averageInterviewScore = null,
   } = stats;
 
+  const techScore = careerReadiness?.categoryScores?.technicalSkills?.score;
+  const techAvailable = Boolean(careerReadiness?.categoryScores?.technicalSkills?.available && typeof techScore === 'number');
+
   const pillars = [
     {
       id: 'resume',
-      title: 'Resume Development',
+      title: 'Resume Quality',
       description: hasResume
-        ? `Uploaded (${latestResumeScore !== null ? `ATS Score: ${latestResumeScore}%` : 'Needs analysis'})`
-        : 'No resume uploaded yet',
-      status: latestResumeScore >= 70 ? 'Ready' : hasResume ? 'In Progress' : 'Action Needed',
-      statusColor: latestResumeScore >= 70 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : hasResume ? 'text-sky-700 bg-sky-50 border-sky-200' : 'text-amber-700 bg-amber-50 border-amber-200',
+        ? latestResumeScore !== null
+          ? `ATS score: ${latestResumeScore}% · Based on your uploaded resume`
+          : 'Resume uploaded · Needs analysis'
+        : 'Upload your resume to check your ATS score and get feedback',
+      status: latestResumeScore >= 70 ? 'Strong' : hasResume ? 'In Progress' : 'Action Needed',
+      statusColor:
+        latestResumeScore >= 70
+          ? 'text-brand-primary bg-brand-forestLight border-brand-sageBorder/60'
+          : hasResume
+          ? 'text-brand-charcoal bg-brand-bg border-brand-border'
+          : 'text-amber-800 bg-amber-50 border-amber-200',
       icon: FileText,
       link: hasResume ? '/analysis' : '/dashboard#resume-section',
       actionText: hasResume ? 'View Analysis' : 'Upload Resume',
     },
     {
       id: 'jobMatching',
-      title: 'Job Matching',
-      description: totalJobMatches > 0
-        ? `${totalJobMatches} target role${totalJobMatches === 1 ? '' : 's'} matched against your profile`
-        : 'No job descriptions matched yet',
+      title: 'Job Compatibility',
+      description:
+        totalJobMatches > 0
+          ? `${totalJobMatches} target role${totalJobMatches === 1 ? '' : 's'} matched against your profile`
+          : 'Compare your resume with target job descriptions',
       status: totalJobMatches >= 2 ? 'Active' : totalJobMatches === 1 ? 'In Progress' : 'Action Needed',
-      statusColor: totalJobMatches >= 2 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : totalJobMatches === 1 ? 'text-sky-700 bg-sky-50 border-sky-200' : 'text-amber-700 bg-amber-50 border-amber-200',
+      statusColor:
+        totalJobMatches >= 2
+          ? 'text-brand-primary bg-brand-forestLight border-brand-sageBorder/60'
+          : totalJobMatches === 1
+          ? 'text-brand-charcoal bg-brand-bg border-brand-border'
+          : 'text-amber-800 bg-amber-50 border-amber-200',
       icon: Briefcase,
       link: '/job-matching',
       actionText: totalJobMatches > 0 ? 'Match Details' : 'Match First Job',
@@ -53,35 +66,57 @@ const CareerProgressCard = ({ stats = {}, careerReadiness = {} }) => {
     {
       id: 'skills',
       title: 'Technical Skills',
-      description: careerReadiness?.categoryScores?.technicalSkills?.available
-        ? `${careerReadiness.categoryScores.technicalSkills.score}% skill alignment achieved`
-        : 'Skills alignment pending activity',
-      status: careerReadiness?.categoryScores?.technicalSkills?.score >= 70 ? 'Strong' : 'Developing',
-      statusColor: careerReadiness?.categoryScores?.technicalSkills?.score >= 70 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-sky-700 bg-sky-50 border-sky-200',
+      description: techAvailable
+        ? `${techScore}% skills alignment with your target roles`
+        : 'Review your technical skills against job expectations',
+      status: techAvailable ? (techScore >= 70 ? 'Strong' : 'Developing') : 'Action Needed',
+      statusColor:
+        techAvailable && techScore >= 70
+          ? 'text-brand-primary bg-brand-forestLight border-brand-sageBorder/60'
+          : techAvailable
+          ? 'text-brand-charcoal bg-brand-bg border-brand-border'
+          : 'text-amber-800 bg-amber-50 border-amber-200',
       icon: Cpu,
       link: '/career-recommendations',
       actionText: 'Explore Roles',
     },
     {
       id: 'roadmap',
-      title: 'Learning Roadmaps',
-      description: roadmapProgress > 0
-        ? `${roadmapProgress}% milestone completion across weekly modules`
-        : 'Generate or start 4-week roadmap',
+      title: 'Learning Progress',
+      description:
+        roadmapProgress > 0
+          ? `${roadmapProgress}% of weekly learning milestones completed`
+          : 'Follow step-by-step roadmaps to build missing skills',
       status: roadmapProgress >= 75 ? 'Advanced' : roadmapProgress > 0 ? 'In Progress' : 'Not Started',
-      statusColor: roadmapProgress >= 75 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : roadmapProgress > 0 ? 'text-sky-700 bg-sky-50 border-sky-200' : 'text-slate-700 bg-slate-100 border-slate-200',
+      statusColor:
+        roadmapProgress >= 75
+          ? 'text-brand-primary bg-brand-forestLight border-brand-sageBorder/60'
+          : roadmapProgress > 0
+          ? 'text-brand-charcoal bg-brand-bg border-brand-border'
+          : 'text-brand-muted bg-brand-bg border-brand-border',
       icon: Map,
       link: '/roadmaps',
       actionText: roadmapProgress > 0 ? 'Continue Roadmap' : 'Create Roadmap',
     },
     {
       id: 'interviews',
-      title: 'Interview Preparation',
-      description: completedInterviews > 0
-        ? `${completedInterviews} completed session${completedInterviews === 1 ? '' : 's'} (${averageInterviewScore || 0}% avg)`
-        : 'No mock interviews completed yet',
-      status: averageInterviewScore >= 80 ? 'Interview Ready' : completedInterviews > 0 ? 'Practicing' : 'Action Needed',
-      statusColor: averageInterviewScore >= 80 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : completedInterviews > 0 ? 'text-sky-700 bg-sky-50 border-sky-200' : 'text-amber-700 bg-amber-50 border-amber-200',
+      title: 'Interview Performance',
+      description:
+        completedInterviews > 0
+          ? `${completedInterviews} interview${completedInterviews === 1 ? '' : 's'} completed (${averageInterviewScore || 0}% avg score)`
+          : 'Practice real mock interviews and improve your answers',
+      status:
+        averageInterviewScore >= 80
+          ? 'Strong'
+          : completedInterviews > 0
+          ? 'Practicing'
+          : 'Action Needed',
+      statusColor:
+        averageInterviewScore >= 80
+          ? 'text-brand-primary bg-brand-forestLight border-brand-sageBorder/60'
+          : completedInterviews > 0
+          ? 'text-brand-charcoal bg-brand-bg border-brand-border'
+          : 'text-amber-800 bg-amber-50 border-amber-200',
       icon: MessageSquareCode,
       link: completedInterviews > 0 ? '/interview-history' : '/mock-interview',
       actionText: completedInterviews > 0 ? 'View Reports' : 'Start Mock Interview',
@@ -89,43 +124,42 @@ const CareerProgressCard = ({ stats = {}, careerReadiness = {} }) => {
   ];
 
   return (
-    <Card className="border-slate-200 p-6 space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+    <Card className="border-brand-border p-5 sm:p-6 space-y-3.5">
+      <div className="flex items-center justify-between pb-3 border-b border-brand-border/70">
         <div>
-          <h3 className="text-base font-bold text-slate-900">
-            Career Development Pillars
+          <h3 className="text-base font-heading font-bold text-brand-charcoal">
+            Your Career Progress
           </h3>
-          <p className="text-xs text-slate-500">
-            Holistic progress tracking across your student career preparation journey
+          <p className="text-xs text-brand-muted mt-0.5">
+            Track your progress in different areas of career preparation.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5 pt-1">
+      <div className="space-y-2.5">
         {pillars.map((pillar) => {
           const Icon = pillar.icon;
           return (
             <div
               key={pillar.id}
-              className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 transition-all flex flex-col justify-between space-y-3"
+              className="p-3 sm:p-3.5 rounded-xl bg-brand-bg border border-brand-border/70 hover:border-brand-borderDark transition-all duration-150 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 group"
             >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-brand-primary shadow-2xs">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${pillar.statusColor}`}
-                  >
-                    {pillar.status}
-                  </span>
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="p-2 rounded-lg bg-white border border-brand-border text-brand-primary flex-shrink-0 shadow-soft-xs">
+                  <Icon className="w-4 h-4" />
                 </div>
-
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">
-                    {pillar.title}
-                  </h4>
-                  <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm font-heading font-bold text-brand-charcoal">
+                      {pillar.title}
+                    </h4>
+                    <span
+                      className={`text-[10px] font-heading font-bold px-2 py-0.5 rounded-full border ${pillar.statusColor}`}
+                    >
+                      {pillar.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-brand-muted mt-0.5">
                     {pillar.description}
                   </p>
                 </div>
@@ -133,11 +167,19 @@ const CareerProgressCard = ({ stats = {}, careerReadiness = {} }) => {
 
               <button
                 type="button"
-                onClick={() => navigate(pillar.link)}
-                className="text-xs font-semibold text-brand-primary hover:underline inline-flex items-center gap-1 pt-1 text-left"
+                onClick={() => {
+                  if (pillar.link.includes('#')) {
+                    const el = document.getElementById('resume-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    else navigate(pillar.link);
+                  } else {
+                    navigate(pillar.link);
+                  }
+                }}
+                className="text-xs font-heading font-semibold text-brand-primary hover:text-brand-primaryHover flex items-center gap-1.5 self-end sm:self-center transition-colors group-hover:underline flex-shrink-0"
               >
                 <span>{pillar.actionText}</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           );

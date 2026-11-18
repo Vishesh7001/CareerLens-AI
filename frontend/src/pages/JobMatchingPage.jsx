@@ -13,6 +13,7 @@ import {
   Compass,
   ArrowRight,
   Plus,
+  Target,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -66,7 +67,6 @@ const JobMatchingPage = () => {
         const userJobs = jobsRes?.jobs || [];
         setJobs(userJobs);
 
-        // Preselect job if specified or first in list
         let effectiveJobId = initialJobId;
         if (!effectiveJobId && userJobs.length > 0) {
           effectiveJobId = userJobs[0]._id;
@@ -74,7 +74,6 @@ const JobMatchingPage = () => {
 
         if (effectiveJobId) {
           setSelectedJobId(effectiveJobId);
-          // Try loading previous matches for this job
           try {
             const matchesRes = await jobService.getJobMatches(effectiveJobId);
             if (isMounted && matchesRes?.matches?.length > 0) {
@@ -102,34 +101,34 @@ const JobMatchingPage = () => {
     };
   }, [initialJobId]);
 
-  // Handle switching selected job
-  const handleJobChange = async (e) => {
-    const newJobId = e.target.value;
-    setSelectedJobId(newJobId);
-    setCurrentMatch(null);
+  // 2. Handle switching selected job
+  const handleJobSelectChange = async (e) => {
+    const jobId = e.target.value;
+    setSelectedJobId(jobId);
     setError('');
     setSuccessMessage('');
+    setCurrentMatch(null);
 
-    if (newJobId) {
-      try {
-        const matchesRes = await jobService.getJobMatches(newJobId);
-        if (matchesRes?.matches?.length > 0) {
-          setCurrentMatch(matchesRes.matches[0]);
-        }
-      } catch {
-        // No previous matches
+    if (!jobId) return;
+
+    try {
+      const res = await jobService.getJobMatches(jobId);
+      if (res?.matches?.length > 0) {
+        setCurrentMatch(res.matches[0]);
       }
+    } catch {
+      // Ignore
     }
   };
 
-  // Run job match evaluation
+  // 3. Run Job Matching
   const handleRunMatch = async () => {
-    if (!selectedJobId) {
-      setError('Please select a target job description to match against.');
+    if (!resume?._id) {
+      setError('Please upload a resume first before running job matching.');
       return;
     }
-    if (!resume) {
-      setError('Please upload a resume first before running job matching.');
+    if (!selectedJobId) {
+      setError('Please select a target job to match against.');
       return;
     }
 
@@ -138,262 +137,244 @@ const JobMatchingPage = () => {
     setSuccessMessage('');
 
     try {
-      const res = await jobService.matchJob(selectedJobId);
-      if (res?.success && res.match) {
-        setCurrentMatch(res.match);
-        setSuccessMessage(`Job compatibility calculated: ${res.match.overallScore}% (${res.match.matchClassification}).`);
+      const matchFn = typeof jobService.runJobMatch === 'function'
+        ? jobService.runJobMatch.bind(jobService)
+        : jobService.matchJob.bind(jobService);
+      const res = await matchFn(selectedJobId);
+      const matchObj = res?.matchResult || res?.match;
+      if (res?.success && matchObj) {
+        setCurrentMatch(matchObj);
+        setSuccessMessage(
+          `Matching completed successfully! Overall compatibility: ${matchObj.overallScore}%.`
+        );
 
         setTimeout(() => {
           const el = document.getElementById('match-results');
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
       } else {
-        throw new Error(res?.message || 'Matching failed.');
+        throw new Error(res?.message || 'Failed to run job matching analysis.');
       }
     } catch (err) {
-      setError(err.message || 'Failed to execute job matching.');
+      setError(err.message || 'Job matching analysis failed. Please try again.');
     } finally {
       setIsMatching(false);
     }
   };
 
-  const selectedJob = jobs.find((j) => j._id === selectedJobId);
-
-  // Loading state
   if (isLoadingInitial) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+      <div className="py-24 flex flex-col items-center justify-center space-y-4">
         <Loader2 className="w-9 h-9 text-brand-primary animate-spin" />
-        <p className="text-sm font-medium text-slate-600">
+        <p className="text-sm font-heading font-medium text-brand-muted">
           Loading job matching intelligence...
         </p>
       </div>
     );
   }
 
-  // Missing Resume state
-  if (!resume) {
-    return (
-      <div className="max-w-md mx-auto py-16 text-center space-y-5">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 shadow-sm">
-          <FileCheck2 className="w-8 h-8" />
-        </div>
-        <div className="space-y-1.5">
-          <h2 className="text-xl font-bold text-slate-900">Resume Required for Matching</h2>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Please upload your PDF resume on the dashboard before running job compatibility matching.
-          </p>
-        </div>
-        <Button
-          variant="secondary"
-          size="md"
-          onClick={() => navigate('/dashboard')}
-        >
-          Go to Resume Upload
-        </Button>
-      </div>
-    );
-  }
-
-  // No Jobs Saved state
-  if (jobs.length === 0) {
-    return (
-      <div className="max-w-md mx-auto py-16 text-center space-y-5">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto border border-indigo-200 shadow-sm">
-          <Building className="w-8 h-8" />
-        </div>
-        <div className="space-y-1.5">
-          <h2 className="text-xl font-bold text-slate-900">No Target Jobs Saved</h2>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Save a job description from LinkedIn, Naukri, or an employer portal to begin matching against your resume.
-          </p>
-        </div>
-        <Button
-          variant="secondary"
-          size="md"
-          icon={Plus}
-          onClick={() => navigate('/jobs')}
-        >
-          Add a Job Description
-        </Button>
-      </div>
-    );
-  }
+  const selectedJob = jobs.find((j) => j._id === selectedJobId);
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-300 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            Phase 4 Intelligent Job Matching Engine
+      {/* Top Banner */}
+      <div className="bg-brand-charcoal rounded-3xl p-7 sm:p-9 text-white shadow-soft-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-brand-forestLight text-xs font-heading font-semibold">
+            <Target className="w-3.5 h-3.5 text-brand-forestLight" />
+            <span>Smart Job Matching</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Job Compatibility & Skill Gap Matching
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-white">
+            Job Description Matching
           </h1>
-          <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Evaluate your resume against specific company job descriptions using a 5-pillar weighted rubric (35% Technical, 25% Projects, 15% Education, 15% Experience, 10% Preferred Skills).
+          <p className="text-[#B2BCB2] text-xs sm:text-sm leading-relaxed font-sans">
+            Compare your resume with a job description to see how well you match the role and which skills you need to improve.
           </p>
         </div>
 
-        {/* Current Resume Pill */}
-        <div className="flex-shrink-0 bg-white/10 border border-white/10 backdrop-blur-sm rounded-xl p-3.5 flex items-center gap-3">
-          <FileCheck2 className="w-6 h-6 text-indigo-300 flex-shrink-0" />
-          <div className="text-xs">
-            <span className="block text-slate-300 font-medium">Active Candidate Resume</span>
-            <span className="font-semibold text-white truncate max-w-[180px] block">
-              {resume.originalFileName}
-            </span>
-          </div>
+        <div className="flex items-center gap-3 self-start md:self-auto flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            icon={Briefcase}
+            onClick={() => navigate('/jobs')}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-heading font-medium"
+          >
+            Manage Target Jobs
+          </Button>
         </div>
       </div>
 
       {/* Alerts */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3 animate-fadeIn">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600" />
-          <div className="flex-1 font-medium">{error}</div>
+        <div className="p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 text-brand-danger text-sm flex items-start gap-3 animate-in fade-in-50">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 font-heading font-medium">{error}</div>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-3 animate-fadeIn">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-600" />
-          <div className="flex-1 font-medium">{successMessage}</div>
+        <div className="p-4 rounded-xl bg-brand-forestLight border border-brand-sageBorder/60 text-brand-primary text-sm flex items-start gap-3 animate-in fade-in-50">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 font-heading font-semibold">{successMessage}</div>
         </div>
       )}
 
-      {/* Job Selection Control Bar */}
-      <Card className="border border-slate-200/90 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex-1 space-y-1">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+      {/* Missing Resume Warning State */}
+      {!resume && (
+        <Card className="p-6 border-brand-border bg-amber-50/40">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-heading font-bold text-brand-charcoal">
+                  Resume Required for Compatibility Matching
+                </h3>
+                <p className="text-xs text-brand-muted mt-0.5">
+                  Upload your PDF resume on the workspace dashboard to compare your qualifications against jobs.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate('/dashboard#resume-section')}
+            >
+              Upload Resume
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Job Selection & Action Bar */}
+      <Card className="border-brand-border p-6 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-1 flex-1 max-w-xl">
+            <label className="block text-xs font-heading font-bold uppercase tracking-wider text-brand-muted">
               Select Target Job Posting
             </label>
-            <div className="flex items-center gap-3">
-              <select
-                value={selectedJobId}
-                onChange={handleJobChange}
-                className="w-full max-w-md px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary bg-white text-slate-900 font-medium"
-              >
-                {jobs.map((job) => (
-                  <option key={job._id} value={job._id}>
-                    {job.companyName} — {job.jobTitle} ({job.jobType})
-                  </option>
-                ))}
-              </select>
-
-              <button
-                type="button"
-                onClick={() => navigate('/jobs')}
-                className="text-xs text-brand-primary hover:underline font-semibold whitespace-nowrap"
-              >
-                + Manage Jobs
-              </button>
-            </div>
+            {jobs.length > 0 ? (
+              <div className="flex items-center gap-3">
+                <select
+                  value={selectedJobId}
+                  onChange={handleJobSelectChange}
+                  className="w-full text-xs sm:text-sm bg-white border border-brand-border rounded-xl py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary text-brand-charcoal font-medium shadow-soft-xs"
+                >
+                  {jobs.map((job) => (
+                    <option key={job._id} value={job._id}>
+                      {job.jobTitle} — {job.companyName} ({job.location || 'Remote'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="text-xs text-brand-muted">
+                No jobs saved yet.{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/jobs')}
+                  className="text-brand-primary font-heading font-bold underline"
+                >
+                  Create your first target job posting
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-3 self-start md:self-auto">
+          <div className="flex items-center gap-3">
             <Button
-              variant="secondary"
+              variant="primary"
               size="md"
               icon={Sparkles}
               isLoading={isMatching}
-              disabled={isMatching || !selectedJobId}
+              disabled={isMatching || !selectedJobId || !resume}
               onClick={handleRunMatch}
-              className="px-6 py-2.5 font-semibold"
+              className="font-heading font-semibold"
             >
-              {isMatching
-                ? 'Evaluating Compatibility...'
-                : currentMatch
-                ? 'Re-Run Compatibility Match'
-                : 'Run Compatibility Match'}
+              {currentMatch ? 'Re-Run Compatibility Match' : 'Run Compatibility Match'}
             </Button>
           </div>
         </div>
 
-        {/* Selected Job Quick Details */}
+        {/* Selected Job Quick Preview */}
         {selectedJob && (
-          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600">
-            <span>
-              <strong className="text-slate-800">Company: </strong>
-              {selectedJob.companyName}
+          <div className="pt-4 border-t border-brand-border/70 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-brand-muted">
+            <span className="flex items-center gap-1.5">
+              <Building className="w-3.5 h-3.5 text-brand-muted" />
+              Company: <strong className="text-brand-charcoal">{selectedJob.companyName}</strong>
             </span>
-            <span>
-              <strong className="text-slate-800">Role: </strong>
-              {selectedJob.jobTitle}
+            <span className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-brand-muted" />
+              Location: <strong className="text-brand-charcoal">{selectedJob.location || 'Remote'}</strong>
             </span>
-            <span>
-              <strong className="text-slate-800">Type: </strong>
-              {selectedJob.jobType}
-            </span>
-            <span>
-              <strong className="text-slate-800">Location: </strong>
-              {selectedJob.location || 'Remote / Hybrid'}
+            <span className="flex items-center gap-1.5">
+              <FileCheck2 className="w-3.5 h-3.5 text-brand-primary" />
+              Candidate Profile:{' '}
+              <strong className="text-brand-charcoal">{resume?.originalFileName || 'Active'}</strong>
             </span>
           </div>
         )}
       </Card>
 
-      {/* Match Results */}
-      {currentMatch ? (
-        <div id="match-results" className="space-y-8 animate-fadeIn">
-          {/* Quick Action Pills */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                Compatibility & Gap Assessment
-              </h2>
-              <p className="text-xs text-slate-500">
-                Evaluation for {currentMatch.jobTitle} at {currentMatch.companyName}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <Button
-                variant="outline"
-                size="sm"
-                icon={Map}
-                onClick={() => navigate(`/roadmaps?jobId=${selectedJobId}`)}
-              >
-                Learning Roadmap
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                icon={Compass}
-                onClick={() => navigate(`/career-recommendations?jobId=${selectedJobId}`)}
-              >
-                Career Paths
-              </Button>
-            </div>
-          </div>
-
-          {/* 1. Score Overview Card (Weighted Rubric) */}
+      {/* Match Results Display */}
+      {currentMatch && (
+        <div id="match-results" className="space-y-8 animate-in fade-in-50 duration-200">
+          {/* 1. Score Card */}
           <JobMatchScoreCard match={currentMatch} />
 
-          {/* 2. Skill Gap Analysis (Matched, Missing Required, Missing Preferred) */}
+          {/* 2. Skill Gap Card */}
           <SkillGapCard
             matchedSkills={currentMatch.matchedSkills}
             missingRequiredSkills={currentMatch.missingRequiredSkills}
             missingPreferredSkills={currentMatch.missingPreferredSkills}
           />
 
-          {/* 3. Detailed Evaluations (Projects, Education, Experience) */}
+          {/* 3. Relevance Details */}
           <JobRelevanceDetailsCard
             projectEvaluation={currentMatch.projectEvaluation}
             educationEvaluation={currentMatch.educationEvaluation}
             experienceEvaluation={currentMatch.experienceEvaluation}
           />
-        </div>
-      ) : (
-        <div className="p-8 text-center rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-          <Sparkles className="w-8 h-8 text-indigo-500 mx-auto" />
-          <h3 className="text-base font-bold text-slate-800">Ready to Match</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Click &quot;Run Compatibility Match&quot; above to compare your resume against {selectedJob?.companyName}&apos;s requirements.
-          </p>
+
+          {/* Next Steps Card: Career Paths & Roadmaps */}
+          <Card className="border-brand-border bg-white p-6 sm:p-7 shadow-soft-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1.5 max-w-xl">
+                <span className="text-xs font-heading font-bold text-brand-primary uppercase tracking-wider block">
+                  NEXT STEPS
+                </span>
+                <h3 className="text-xl font-heading font-bold text-brand-charcoal tracking-tight">
+                  Improve Your Job Match
+                </h3>
+                <p className="text-xs sm:text-sm text-brand-slate leading-relaxed font-sans">
+                  Build the skills you're missing with a learning roadmap or practice relevant interview questions.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  variant="primary"
+                  size="md"
+                  icon={Map}
+                  onClick={() => navigate('/roadmaps')}
+                  className="font-heading font-semibold"
+                >
+                  View Roadmaps
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  icon={ArrowRight}
+                  onClick={() => navigate('/mock-interview')}
+                  className="font-heading font-medium"
+                >
+                  Start Mock Interview
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
     </div>

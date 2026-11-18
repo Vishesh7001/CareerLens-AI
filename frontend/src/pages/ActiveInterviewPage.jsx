@@ -39,7 +39,6 @@ const ActiveInterviewPage = () => {
   const [error, setError] = useState('');
   const [showExitModal, setShowExitModal] = useState(false);
 
-  // Load session from server
   useEffect(() => {
     let isMounted = true;
 
@@ -55,7 +54,6 @@ const ActiveInterviewPage = () => {
           const session = res.interview;
           setInterview(session);
 
-          // If session already completed, redirect to report
           if (session.status === 'completed') {
             navigate(`/mock-interview/${interviewId}/report`, { replace: true });
             return;
@@ -91,32 +89,28 @@ const ActiveInterviewPage = () => {
   const isAnswered = currentQuestion?.status === 'answered' && Boolean(currentQuestion.evaluation);
   const isLastQuestion = interview?.questions && currentIdx >= interview.questions.length - 1;
 
-  // Calculate live word count
   const wordCount = answerText.trim() ? answerText.trim().split(/\s+/).filter(Boolean).length : 0;
   const charCount = answerText.length;
 
-  // Save Draft handler
   const handleSaveDraft = async () => {
     if (!interview || isAnswered) return;
     setIsSavingDraft(true);
-    setError('');
     setDraftSavedMessage('');
 
     try {
       await interviewService.saveDraft(interviewId, answerText, currentIdx);
-      setDraftSavedMessage('Draft saved successfully.');
+      setDraftSavedMessage('Draft saved');
       setTimeout(() => setDraftSavedMessage(''), 3000);
-    } catch (err) {
-      setError(err.message || 'Failed to save draft.');
+    } catch {
+      // Soft fail
     } finally {
       setIsSavingDraft(false);
     }
   };
 
-  // Submit Answer handler
   const handleSubmitAnswer = async () => {
-    if (!answerText.trim()) {
-      setError('Please write an answer before submitting.');
+    if (!answerText.trim() || answerText.trim().length < 10) {
+      setError('Your answer should be at least 10 characters long to provide meaningful evaluation.');
       return;
     }
 
@@ -124,316 +118,277 @@ const ActiveInterviewPage = () => {
     setError('');
 
     try {
-      const res = await interviewService.submitAnswer(interviewId, answerText, currentIdx);
-      if (res?.success && res.question) {
-        // Update local session state with evaluation
-        const updatedQuestions = [...interview.questions];
-        updatedQuestions[currentIdx] = res.question;
+      const res = await interviewService.submitAnswer(
+        interviewId,
+        answerText.trim(),
+        currentIdx
+      );
 
-        setInterview({
-          ...interview,
-          questions: updatedQuestions,
-          completionPercentage: res.completionPercentage || interview.completionPercentage,
-        });
+      if (res?.success && res.interview) {
+        setInterview(res.interview);
       } else {
         throw new Error(res?.message || 'Failed to evaluate answer.');
       }
     } catch (err) {
-      setError(err.message || 'Failed to submit answer for evaluation.');
+      setError(err.message || 'Evaluation failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Next Question handler
   const handleNextQuestion = async () => {
     setError('');
-
-    if (isLastQuestion) {
-      // Complete interview and go to report
-      try {
-        setIsSubmitting(true);
-        await interviewService.completeInterview(interviewId);
-        navigate(`/mock-interview/${interviewId}/report`);
-      } catch (err) {
-        setError(err.message || 'Failed to complete interview.');
-        setIsSubmitting(false);
-      }
-      return;
-    }
-
     try {
-      await interviewService.nextQuestion(interviewId);
-      const nextIdx = currentIdx + 1;
-      setCurrentIdx(nextIdx);
+      const res = await interviewService.nextQuestion(interviewId, currentQuestion._id);
+      if (res?.success && res.interview) {
+        setInterview(res.interview);
+        const nextIdx = res.interview.currentQuestionIndex || currentIdx + 1;
+        setCurrentIdx(nextIdx);
 
-      const nextQ = interview.questions[nextIdx];
-      setAnswerText(nextQ?.answer || nextQ?.draftAnswer || '');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        const nextQ = res.interview.questions[nextIdx];
+        if (nextQ) {
+          setAnswerText(nextQ.answer || nextQ.draftAnswer || '');
+        }
+      }
     } catch (err) {
-      setError(err.message || 'Failed to advance to next question.');
+      setError(err.message || 'Failed to navigate to next question.');
+    }
+  };
+
+  const handleCompleteInterview = async () => {
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await interviewService.completeInterview(interviewId);
+      if (res?.success) {
+        navigate(`/mock-interview/${interviewId}/report`);
+      } else {
+        throw new Error(res?.message || 'Failed to finalize report.');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to complete interview.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+      <div className="py-24 flex flex-col items-center justify-center space-y-4">
         <Loader2 className="w-9 h-9 text-brand-primary animate-spin" />
-        <p className="text-sm font-medium text-slate-600">
-          Preparing your active mock interview room...
+        <p className="text-sm font-heading font-medium text-brand-muted">
+          Loading interview simulation...
         </p>
       </div>
     );
   }
 
-  if (error && !interview) {
-    return (
-      <div className="p-8 text-center max-w-lg mx-auto space-y-4">
-        <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-          <AlertCircle className="w-6 h-6" />
-        </div>
-        <h2 className="text-lg font-bold text-slate-900">Unable to Load Interview</h2>
-        <p className="text-sm text-slate-600">{error}</p>
-        <Button onClick={() => navigate('/mock-interview')}>
-          Configure New Interview
-        </Button>
-      </div>
-    );
-  }
-
-  const totalQ = interview?.totalQuestions || 5;
-  const progressPercent = Math.round(((currentIdx + (isAnswered ? 1 : 0)) / totalQ) * 100);
+  const answeredCount = interview?.questions?.filter((q) => q.status === 'answered').length || 0;
+  const totalCount = interview?.questions?.length || 1;
+  const progressPercent = Math.round((answeredCount / totalCount) * 100);
 
   return (
-    <div className="space-y-6 pb-20 max-w-4xl mx-auto">
-      {/* Top Header & Status Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+      {/* Top Session Progress Bar */}
+      <div className="bg-white rounded-2xl border border-brand-border p-4 shadow-soft-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-brand-navy">
-              {interview.customRole || interview.role}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-heading font-bold uppercase tracking-wider text-brand-primary">
+              {interview?.role}
             </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-xs text-slate-500 font-medium">
-              {interview.interviewType}
+            <span className="text-brand-muted">•</span>
+            <span className="text-xs text-brand-muted font-medium">
+              {interview?.interviewType}
             </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold">
-              {interview.difficulty}
+            <span className="text-brand-muted">•</span>
+            <span className="text-[11px] font-heading font-semibold px-2 py-0.5 rounded-full bg-brand-forestLight text-brand-primary border border-brand-sageBorder/60">
+              {interview?.difficulty}
             </span>
           </div>
-          <div className="text-xs text-slate-400">
-            Question <strong className="text-slate-800">{currentIdx + 1}</strong> of{' '}
-            <strong className="text-slate-800">{totalQ}</strong>
+          <div className="text-sm font-heading font-bold text-brand-charcoal">
+            Question {currentIdx + 1} of {totalCount}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          {/* Progress bar */}
-          <div className="flex items-center gap-2.5 flex-1 sm:w-40">
-            <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <span className="text-xs font-heading font-bold text-brand-charcoal">
+              {progressPercent}% Complete
+            </span>
+            <div className="w-32 bg-brand-bg rounded-full h-2 mt-1 border border-brand-border/60 overflow-hidden">
               <div
-                className="h-full rounded-full bg-brand-primary transition-all duration-300"
+                className="h-full bg-brand-primary rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="text-xs font-bold text-slate-600 min-w-[32px]">
-              {progressPercent}%
-            </span>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={LogOut}
-            className="text-slate-500 hover:text-rose-600 hover:bg-rose-50"
+          <button
+            type="button"
             onClick={() => setShowExitModal(true)}
+            className="text-xs font-heading font-semibold text-brand-muted hover:text-brand-danger flex items-center gap-1 transition-colors px-2.5 py-1.5 rounded-xl hover:bg-red-50/50"
           >
-            Exit
-          </Button>
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Exit</span>
+          </button>
         </div>
       </div>
 
+      {/* Error alert */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-sm text-rose-800">
-          <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
+        <div className="p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 text-brand-danger text-sm flex items-start gap-3 animate-in fade-in-50">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 font-heading font-medium">{error}</div>
         </div>
       )}
 
-      {/* Main Question Card */}
-      {currentQuestion && (
-        <Card className="p-6 sm:p-7 border-slate-200 space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-[11px] uppercase font-bold px-2.5 py-0.5 rounded-full ${
-                  currentQuestion.category === 'technical'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-purple-100 text-purple-800'
-                }`}
-              >
-                {currentQuestion.category} Question
-              </span>
-              <span className="text-xs text-slate-500 font-medium">
-                Topic: <strong>{currentQuestion.topic}</strong>
-              </span>
-            </div>
+      {/* Question Presentation Card */}
+      <Card className="border-brand-border p-6 sm:p-8 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-brand-border/70 text-xs text-brand-muted font-heading font-semibold">
+          <span>Question Prompt</span>
+          <span className="text-brand-primary">Category: {currentQuestion?.category || 'Technical'}</span>
+        </div>
 
-            {isAnswered && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Answer Evaluated
-              </span>
-            )}
+        <h2 className="text-lg sm:text-xl font-heading font-bold text-brand-charcoal leading-snug">
+          {currentQuestion?.questionText}
+        </h2>
+
+        {/* Tip / Guidance Banner */}
+        <div className="p-3.5 rounded-xl bg-brand-bg border border-brand-border flex items-start gap-2.5 text-xs text-brand-slate leading-relaxed">
+          <BookOpen className="w-4 h-4 text-brand-primary flex-shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-brand-charcoal font-heading font-semibold">Evaluation Insight: </strong>
+            Structure your answer using concrete principles, edge case considerations, and trade-offs. For behavioral questions, apply the STAR framework (Situation, Task, Action, Result).
           </div>
+        </div>
+      </Card>
 
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
-            {currentQuestion.questionText}
-          </h2>
-
-          {/* Answer Editor Area */}
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <label className="font-semibold text-slate-700">
-                {isAnswered ? 'Your Submitted Answer' : 'Your Answer (Text Response)'}
-              </label>
-              <div className="flex items-center gap-3">
-                {draftSavedMessage && (
-                  <span className="text-emerald-600 font-medium animate-pulse">
-                    {draftSavedMessage}
-                  </span>
-                )}
-                <span>
-                  Words: <strong className="text-slate-700">{wordCount}</strong> | Characters:{' '}
-                  <strong className="text-slate-700">{charCount}</strong>
+      {/* Response Workspace Card */}
+      {!isAnswered ? (
+        <Card className="border-brand-border p-6 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-heading font-bold uppercase tracking-wider text-brand-muted">
+              Your Professional Response
+            </span>
+            <div className="flex items-center gap-3 text-brand-muted">
+              {draftSavedMessage && (
+                <span className="text-brand-primary font-heading font-semibold flex items-center gap-1 animate-in fade-in">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {draftSavedMessage}
                 </span>
-              </div>
+              )}
+              <span>{wordCount} words</span>
+              <span>{charCount} characters</span>
             </div>
-
-            <textarea
-              rows={7}
-              disabled={isAnswered || isSubmitting}
-              value={answerText}
-              onChange={(e) => setAnswerText(e.target.value)}
-              placeholder={
-                currentQuestion.category === 'technical'
-                  ? 'Explain the technical concepts, architecture, and practical use cases clearly...'
-                  : 'Structure your answer using the STAR method: Situation, Task, Action, Result...'
-              }
-              className={`w-full p-4 rounded-xl border text-sm leading-relaxed font-mono transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary ${
-                isAnswered
-                  ? 'bg-slate-50/80 border-slate-200 text-slate-800 cursor-not-allowed'
-                  : 'bg-white border-slate-300 text-slate-900'
-              }`}
-            />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-            <div>
-              {!isAnswered && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  icon={Save}
-                  isLoading={isSavingDraft}
-                  disabled={isSavingDraft || isSubmitting || !answerText.trim()}
-                  onClick={handleSaveDraft}
-                >
-                  Save Draft
-                </Button>
-              )}
-            </div>
+          <textarea
+            rows={8}
+            value={answerText}
+            onChange={(e) => setAnswerText(e.target.value)}
+            disabled={isSubmitting}
+            placeholder="Type your structured answer here. Speak as you would in a real technical or behavioral interview..."
+            className="w-full p-4 text-sm bg-brand-bg border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary text-brand-charcoal placeholder-brand-muted/70 leading-relaxed shadow-soft-xs transition-colors"
+          />
 
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-              {!isAnswered ? (
-                <Button
-                  variant="primary"
-                  size="md"
-                  icon={CheckCircle2}
-                  isLoading={isSubmitting}
-                  disabled={isSubmitting || !answerText.trim()}
-                  onClick={handleSubmitAnswer}
-                  className="w-full sm:w-auto px-6"
-                >
-                  Submit Answer & Evaluate
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  size="md"
-                  icon={ArrowRight}
-                  isLoading={isSubmitting}
-                  disabled={isSubmitting}
-                  onClick={handleNextQuestion}
-                  className="w-full sm:w-auto px-6"
-                >
-                  {isLastQuestion ? 'Complete Interview & View Report' : 'Next Question'}
-                </Button>
-              )}
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              icon={Save}
+              isLoading={isSavingDraft}
+              disabled={isSubmitting || !answerText.trim()}
+              onClick={handleSaveDraft}
+              className="text-xs font-heading font-medium"
+            >
+              Save Draft
+            </Button>
+
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              icon={Sparkles}
+              isLoading={isSubmitting}
+              disabled={isSubmitting || answerText.trim().length < 10}
+              onClick={handleSubmitAnswer}
+              className="font-heading font-semibold w-full sm:w-auto"
+            >
+              Submit Answer for Evaluation
+            </Button>
           </div>
         </Card>
-      )}
-
-      {/* AI Evaluation Card (Shows after submission) */}
-      {isAnswered && currentQuestion.evaluation && (
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
-            <Sparkles className="w-4 h-4 text-brand-primary" />
-            AI Evaluation & Feedback
-          </div>
+      ) : (
+        /* Evaluation View after Answer Submission */
+        <div className="space-y-6">
           <AnswerEvaluationCard
             evaluation={currentQuestion.evaluation}
             category={currentQuestion.category}
           />
 
-          {/* Bottom Next Question CTA */}
-          <div className="flex justify-end pt-3">
-            <Button
-              variant="secondary"
-              size="lg"
-              icon={ArrowRight}
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
-              onClick={handleNextQuestion}
-              className="px-8 shadow-sm"
-            >
-              {isLastQuestion ? 'Complete Interview & View Report' : 'Proceed to Next Question'}
-            </Button>
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-xs text-brand-muted font-heading">
+              Evaluated via Multi-Criteria Rubric
+            </div>
+
+            {!isLastQuestion ? (
+              <Button
+                variant="primary"
+                size="md"
+                icon={ArrowRight}
+                onClick={handleNextQuestion}
+                className="font-heading font-semibold"
+              >
+                Proceed to Question {currentIdx + 2}
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="md"
+                icon={Award}
+                isLoading={isSubmitting}
+                onClick={handleCompleteInterview}
+                className="font-heading font-semibold"
+              >
+                Complete & View Performance Report
+              </Button>
+            )}
           </div>
         </div>
       )}
 
-      {/* Exit Confirmation Dialog */}
+      {/* Exit Confirmation Modal */}
       {showExitModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="max-w-md w-full p-6 space-y-4 border-slate-200 shadow-xl bg-white animate-in zoom-in-95 duration-200">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <LogOut className="w-4 h-4 text-amber-600" />
-              Exit Mock Interview?
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Your answered questions and saved drafts are stored safely in MongoDB. You can resume this session anytime from your <strong>Interview History</strong> page.
-            </p>
-            <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-soft-lg border border-brand-border space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="space-y-1">
+              <h4 className="text-base font-heading font-bold text-brand-charcoal">
+                Exit Interview Simulation?
+              </h4>
+              <p className="text-xs text-brand-muted leading-relaxed">
+                Your submitted evaluations and drafts are saved automatically. You can resume this session anytime from your Interview History page.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-brand-border/70">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowExitModal(false)}
               >
-                Continue Interview
+                Resume Interview
               </Button>
               <Button
                 variant="danger"
                 size="sm"
                 onClick={() => navigate('/interview-history')}
               >
-                Exit to History
+                Confirm Exit
               </Button>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>

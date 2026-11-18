@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Loader2,
   FileCheck2,
+  Target,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -21,30 +22,24 @@ import ScoreOverviewCard from '../components/analysis/ScoreOverviewCard';
 import StrengthsWeaknessesCard from '../components/analysis/StrengthsWeaknessesCard';
 import TechnicalSkillsCard from '../components/analysis/TechnicalSkillsCard';
 import ProjectExperienceCard from '../components/analysis/ProjectExperienceCard';
-import SuggestionsFeedbackCard from '../components/analysis/SuggestionsFeedbackCard';
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
 
-  // Resume state
   const [resume, setResume] = useState(null);
   const [isLoadingResume, setIsLoadingResume] = useState(true);
 
-  // Analysis state
   const [analysis, setAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Form selections
   const [selectedRole, setSelectedRole] = useState('Full Stack Developer');
   const [customRole, setCustomRole] = useState('');
   const [jobDescription, setJobDescription] = useState('');
 
-  // Alerts
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch active resume & existing analysis on mount
   useEffect(() => {
     let isMounted = true;
 
@@ -60,14 +55,12 @@ const AnalysisPage = () => {
           const userResume = resumeRes.resume;
           setResume(userResume);
 
-          // Try to fetch previous analysis
           try {
             const analysisRes = await analysisService.getAnalysis(userResume._id);
             if (isMounted && analysisRes?.success && analysisRes.analysis) {
               const savedAnalysis = analysisRes.analysis;
               setAnalysis(savedAnalysis);
 
-              // Pre-fill role selectors
               if (PREDEFINED_ROLES.includes(savedAnalysis.targetRole)) {
                 setSelectedRole(savedAnalysis.targetRole);
               } else {
@@ -102,7 +95,6 @@ const AnalysisPage = () => {
     };
   }, []);
 
-  // Run analysis handler
   const handleAnalyze = async () => {
     if (!resume?._id) {
       setError('No active resume found to analyze.');
@@ -134,7 +126,6 @@ const AnalysisPage = () => {
           `Analysis successfully generated for "${res.analysis.targetRole}".`
         );
 
-        // Smooth scroll to results
         setTimeout(() => {
           const el = document.getElementById('analysis-results');
           if (el) {
@@ -154,7 +145,6 @@ const AnalysisPage = () => {
     }
   };
 
-  // Delete analysis handler
   const handleDeleteAnalysis = async () => {
     if (!resume?._id || !analysis) return;
 
@@ -175,43 +165,41 @@ const AnalysisPage = () => {
     }
   };
 
-  // Loading Screen
   if (isLoadingResume) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <Loader2 className="w-9 h-9 text-brand-primary animate-spin" />
-        <p className="text-sm font-medium text-slate-600">
+        <p className="text-sm font-heading font-medium text-brand-muted">
           Loading your resume intelligence profile...
         </p>
       </div>
     );
   }
 
-  // Empty State: No resume uploaded yet
   if (!resume) {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-sky-50 text-brand-primary flex items-center justify-center mx-auto border border-sky-100 shadow-sm">
+      <div className="max-w-2xl mx-auto py-16 text-center space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-brand-forestLight text-brand-primary flex items-center justify-center mx-auto border border-brand-sageBorder/60 shadow-soft-xs">
           <FileText className="w-8 h-8" />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-heading font-bold text-brand-charcoal tracking-tight">
             No Resume Found
           </h2>
-          <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-            Upload your PDF resume on the dashboard to unlock AI-powered scoring, skills breakdown, and personalized recommendations.
+          <p className="text-sm text-brand-slate max-w-md mx-auto leading-relaxed">
+            Upload your PDF resume on the workspace dashboard to unlock AI-powered ATS scoring, skills breakdown, and personalized recommendations.
           </p>
         </div>
 
         <div className="pt-2">
           <Button
-            variant="secondary"
+            variant="primary"
             size="lg"
             icon={Upload}
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/dashboard#resume-section')}
           >
-            Go to Resume Upload
+            Upload Resume Now
           </Button>
         </div>
       </div>
@@ -221,26 +209,26 @@ const AnalysisPage = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-brand-navy to-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sky-300 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            Phase 3 AI Resume Analysis Live
+      <div className="bg-brand-charcoal rounded-3xl p-7 sm:p-9 text-white shadow-soft-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-brand-forestLight text-xs font-heading font-semibold">
+            <Target className="w-3.5 h-3.5 text-brand-forestLight" />
+            <span>Intelligent ATS Review & Benchmarking</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            AI-Powered Resume Analysis
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-white">
+            Resume Intelligence & ATS Scoring
           </h1>
-          <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Target your resume against specific engineering roles or custom job descriptions. Get transparent scoring across 6 key categories, evidence-based strengths, and high-impact missing skills.
+          <p className="text-[#B2BCB2] text-xs sm:text-sm leading-relaxed font-sans">
+            Benchmark your resume against specific target engineering roles or custom job descriptions. Get transparent scoring across 6 key categories, evidence-based strengths, and high-impact missing skills.
           </p>
         </div>
 
         {/* Current Resume Pill */}
-        <div className="flex-shrink-0 bg-white/10 border border-white/10 backdrop-blur-sm rounded-xl p-3.5 flex items-center gap-3">
-          <FileCheck2 className="w-6 h-6 text-sky-300 flex-shrink-0" />
+        <div className="flex-shrink-0 bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 shadow-soft-xs">
+          <FileCheck2 className="w-6 h-6 text-brand-forestLight flex-shrink-0" />
           <div className="text-xs">
-            <span className="block text-slate-300 font-medium">Active Resume</span>
-            <span className="font-semibold text-white truncate max-w-[180px] block">
+            <span className="block text-[#A4B0A4] font-medium">Active Candidate Resume</span>
+            <span className="font-heading font-bold text-white truncate max-w-[180px] block">
               {resume.originalFileName}
             </span>
           </div>
@@ -249,16 +237,16 @@ const AnalysisPage = () => {
 
       {/* Alert Banners */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3 animate-fadeIn">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-600" />
-          <div className="flex-1 font-medium">{error}</div>
+        <div className="p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 text-brand-danger text-sm flex items-start gap-3 animate-in fade-in-50">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 font-heading font-medium">{error}</div>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-3 animate-fadeIn">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-600" />
-          <div className="flex-1 font-medium">{successMessage}</div>
+        <div className="p-4 rounded-xl bg-brand-forestLight border border-brand-sageBorder/60 text-brand-primary text-sm flex items-start gap-3 animate-in fade-in-50">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 font-heading font-semibold">{successMessage}</div>
         </div>
       )}
 
@@ -277,16 +265,16 @@ const AnalysisPage = () => {
 
       {/* Analysis Results Display */}
       {analysis && (
-        <div id="analysis-results" className="space-y-8 animate-fadeIn">
+        <div id="analysis-results" className="space-y-6 animate-in fade-in-50 duration-200">
           {/* Header Action Bar for Results */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div>
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              <h2 className="text-xl font-heading font-bold text-brand-charcoal tracking-tight">
                 Analysis Results & Recommendations
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-brand-muted">
                 Detailed evaluation for{' '}
-                <strong className="text-slate-800">{analysis.targetRole}</strong>
+                <strong className="text-brand-charcoal">{analysis.targetRole}</strong>
               </p>
             </div>
 
@@ -297,7 +285,7 @@ const AnalysisPage = () => {
                 icon={Trash2}
                 onClick={handleDeleteAnalysis}
                 isLoading={isDeleting}
-                className="text-red-600 hover:text-red-700 hover:border-red-200 hover:bg-red-50"
+                className="text-brand-danger hover:border-red-300 hover:bg-red-50/50"
               >
                 Delete Analysis
               </Button>
@@ -323,13 +311,6 @@ const AnalysisPage = () => {
           <ProjectExperienceCard
             projectAnalysis={analysis.projectAnalysis}
             experienceAnalysis={analysis.experienceAnalysis}
-          />
-
-          {/* 5. Improvement Suggestions & Comprehensive AI Review */}
-          <SuggestionsFeedbackCard
-            improvementSuggestions={analysis.improvementSuggestions}
-            aiFeedback={analysis.aiFeedback}
-            targetRole={analysis.targetRole}
           />
         </div>
       )}

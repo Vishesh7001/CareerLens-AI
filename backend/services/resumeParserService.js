@@ -270,7 +270,9 @@ const segmentSections = (rawText) => {
     experience: /(?:^|\n)\s*(?:WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|EMPLOYMENT HISTORY)[:\s]*/i,
     projects: /(?:^|\n)\s*(?:PROJECTS|PERSONAL PROJECTS|KEY PROJECTS|ACADEMIC PROJECTS)[:\s]*/i,
     certifications: /(?:^|\n)\s*(?:CERTIFICATIONS|CERTIFICATES|LICENSES & CERTIFICATIONS)[:\s]*/i,
+    activities: /(?:^|\n)\s*(?:ACTIVITIES|EXTRACURRICULAR(?: ACTIVITIES)?|CO-CURRICULAR(?: ACTIVITIES)?|VOLUNTEERING|LEADERSHIP & ACTIVITIES)[:\s]*/i,
     skills: /(?:^|\n)\s*(?:TECHNICAL SKILLS|SKILLS|CORE COMPETENCIES)[:\s]*/i,
+    notice: /(?:^|\n)\s*(?:TEST DATA NOTICE|NOTICE|DISCLAIMER)[:\s]*/i,
   };
 
   const headers = [];
@@ -304,15 +306,28 @@ const parseEducation = (eduText) => {
   if (!eduText) return [];
 
   const lines = eduText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  const degreeRegex = /(?:B\.?Tech|B\.?E\.?|B\.?S\.?c?|M\.?Tech|M\.?S\.?c?|M\.?E\.?|MBA|Ph\.?D\.?|Bachelor(?:'s)?(?:\s+of\s+[A-Za-z\s]+)?|Master(?:'s)?(?:\s+of\s+[A-Za-z\s]+)?|Associate(?:'s)?(?:\s+of\s+[A-Za-z\s]+)?|Diploma)/i;
+  const degreeRegex = /\b(?:B\.?Tech|B\.?E\.?|B\.?S\.?c?|M\.?Tech|M\.?S\.?c?|M\.?E\.?|MBA|Ph\.?D\.?|Bachelor(?:'s)?(?:\s+of\s+[A-Za-z\s]+)?|Master(?:'s)?(?:\s+of\s+[A-Za-z\s]+)?|Associate(?:'s)?(?:\s+of\s+[A-Za-z\s]+)?|Diploma|Class\s+(?:X|XII|10th|12th)(?:\s*[-–]\s*[A-Za-z]+)?)\b/i;
   const instRegex = /(?:University|College|Institute|School|Academy|Polytechnic)/i;
 
   const results = [];
   let current = null;
 
   for (const line of lines) {
+    if (/test data notice|fictional sample|placeholders/i.test(line)) continue;
     const hasInst = instRegex.test(line);
     const hasDegree = degreeRegex.test(line);
+
+    // If current education entry is missing institution and this next line provides it without a new degree, merge
+    if (current && !current.institution && hasInst && !hasDegree) {
+      const parts = line.split(/[-–|;,]/).map((p) => p.trim());
+      const instPart = parts.find((p) => instRegex.test(p));
+      if (instPart) current.institution = instPart;
+      const ym = line.match(/\b(19\d{2}|20\d{2})\b/);
+      if (ym && !current.graduationYear) current.graduationYear = ym[1];
+      const gm = line.match(/(?:GPA|CGPA|Grade)?:?\s*([0-9]\.[0-9]{1,2}(?:\s*\/\s*(?:10|4))?|\b\d{2}(?:\.\d+)?%)/i);
+      if (gm && !current.grade) current.grade = gm[1];
+      continue;
+    }
 
     if (hasInst || hasDegree) {
       if (current) results.push(current);
@@ -333,7 +348,7 @@ const parseEducation = (eduText) => {
       const degMatch = line.match(degreeRegex);
       if (degMatch) current.degree = degMatch[0].trim();
 
-      const specMatch = line.match(/(?:in|of)\s+([A-Za-z\s]+(?:Engineering|Science|Administration|Technology|Mathematics|Studies))/i);
+      const specMatch = line.match(/(?:in|of|–|-)\s+([A-Za-z\s]+(?:Engineering|Science|Administration|Technology|Mathematics|Studies))/i);
       if (specMatch) current.specialization = specMatch[1].trim();
 
       if (hasInst) {
@@ -354,14 +369,14 @@ const parseEducation = (eduText) => {
         if (gm) current.grade = gm[1];
       }
       if (!current.specialization) {
-        const sm = line.match(/(?:in|of)\s+([A-Za-z\s]+(?:Engineering|Science|Administration|Technology|Mathematics|Studies))/i);
+        const sm = line.match(/(?:in|of|–|-)\s+([A-Za-z\s]+(?:Engineering|Science|Administration|Technology|Mathematics|Studies))/i);
         if (sm) current.specialization = sm[1].trim();
       }
     }
   }
 
   if (current) results.push(current);
-  return results;
+  return results.filter(e => e.institution || e.degree);
 };
 
 /**
@@ -372,12 +387,24 @@ const parseExperience = (expText) => {
 
   const lines = expText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const dateRangeRegex = /(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\b(?:19|20)\d{2}\b)\s*(?:-|–|to)\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|\b(?:19|20)\d{2}\b)/i;
-  const titleRegex = /(?:Senior\s+|Junior\s+|Lead\s+|Principal\s+)?(?:Software Engineer|Frontend Engineer|Backend Engineer|Full Stack Developer|Web Developer|Data Scientist|DevOps Engineer|Product Manager|QA Engineer|Intern|Specialist|Analyst|Consultant|Architect|Developer|Engineer|Programmer)/i;
+  const titleRegex = /(?:Senior\s+|Junior\s+|Lead\s+|Principal\s+|Web\s+Development\s+|Software\s+Development\s+)?(?:Software Engineer|Frontend Engineer|Backend Engineer|Full Stack Developer|Frontend Developer|Backend Developer|Web Developer|Data Scientist|DevOps Engineer|Product Manager|QA Engineer|Intern|Specialist|Analyst|Consultant|Architect|Developer|Engineer|Programmer)/i;
 
   const results = [];
   let current = null;
 
   for (const line of lines) {
+    if (/test data notice|fictional sample|placeholders/i.test(line)) continue;
+    const isBullet = /^[•\-\*]/.test(line);
+
+    // If line is a bullet point, it's a responsibility belonging to current experience
+    if (isBullet && current) {
+      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+      current.description = current.description
+        ? `${current.description} ${cleanLine}`
+        : cleanLine;
+      continue;
+    }
+
     const hasDate = dateRangeRegex.test(line);
     const hasTitle = titleRegex.test(line);
 
@@ -386,6 +413,7 @@ const parseExperience = (expText) => {
       current = {
         company: null,
         position: null,
+        role: null,
         duration: null,
         description: '',
       };
@@ -394,7 +422,10 @@ const parseExperience = (expText) => {
       if (dateMatch) current.duration = dateMatch[0].trim();
 
       const titleMatch = line.match(titleRegex);
-      if (titleMatch) current.position = titleMatch[0].trim();
+      if (titleMatch) {
+        current.position = titleMatch[0].trim();
+        current.role = titleMatch[0].trim();
+      }
 
       const companyMatch = line.match(/(?:at|@)\s+([A-Za-z0-9\s&.,-]+?)(?=\s*\(|\s*[-–|]|\s*$)/i);
       if (companyMatch) {
@@ -417,7 +448,7 @@ const parseExperience = (expText) => {
   }
 
   if (current) results.push(current);
-  return results;
+  return results.filter(e => e.position || e.company);
 };
 
 /**
@@ -482,6 +513,7 @@ const parseCertifications = (certText) => {
   for (const line of lines) {
     const clean = line.replace(/^[•\-\*]\s*/, '').trim();
     if (!clean) continue;
+    if (/test data notice|fictional sample|placeholders|do not use as a real/i.test(clean)) continue;
 
     const yearMatch = clean.match(/\b(19\d{2}|20\d{2})\b/);
     const issuerMatch = clean.match(
@@ -494,6 +526,24 @@ const parseCertifications = (certText) => {
       issuer: issuerMatch ? issuerMatch[0] : (parts.length > 1 ? parts[1] : null),
       date: yearMatch ? yearMatch[1] : null,
     });
+  }
+
+  return results;
+};
+
+/**
+ * Parse Activities section
+ */
+const parseActivities = (actText) => {
+  if (!actText) return [];
+
+  const lines = actText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const results = [];
+
+  for (const line of lines) {
+    const clean = line.replace(/^[•\-\*]\s*/, '').trim();
+    if (!clean || /test data notice|fictional sample|placeholders|do not use as a real/i.test(clean)) continue;
+    results.push(clean);
   }
 
   return results;
@@ -526,6 +576,7 @@ const parseResumeText = (rawText) => {
       experience: [],
       projects: [],
       certifications: [],
+      activities: [],
     };
   }
 
@@ -539,6 +590,7 @@ const parseResumeText = (rawText) => {
     experience: parseExperience(sections.experience),
     projects: parseProjects(sections.projects),
     certifications: parseCertifications(sections.certifications),
+    activities: parseActivities(sections.activities),
   };
 };
 

@@ -46,7 +46,18 @@ export const jobService = {
    */
   async matchJob(jobId) {
     const response = await api.post(`/jobs/${jobId}/match`);
+    // Ensure both match and matchResult are present for backwards/caller compatibility
+    if (response.data && response.data.match && !response.data.matchResult) {
+      response.data.matchResult = response.data.match;
+    }
     return response.data;
+  },
+
+  /**
+   * Run job match (alias for matchJob)
+   */
+  async runJobMatch(jobId) {
+    return this.matchJob(jobId);
   },
 
   /**
@@ -77,22 +88,48 @@ export const jobService = {
   },
 
   /**
-   * Get all roadmaps for current user
+   * Get all roadmaps for current user, optionally filtered by role
    */
-  async getRoadmaps() {
-    const response = await api.get('/roadmaps');
+  async getRoadmaps(role = null) {
+    const config = {};
+    if (role && typeof role === 'string' && role.trim()) {
+      config.params = { role: role.trim() };
+    }
+    const response = await api.get('/roadmaps', config);
     return response.data;
   },
 
   /**
-   * Generate a learning roadmap for a job
+   * Get roadmap by target role
    */
-  async createRoadmap(jobId, durationWeeks = 4, missingSkills = null) {
-    const payload = {
-      jobId,
-      durationWeeks: Number(durationWeeks) || 4,
-    };
-    if (missingSkills) payload.missingSkills = missingSkills;
+  async getRoadmapByRole(role) {
+    if (!role || typeof role !== 'string') return null;
+    const response = await api.get(`/roadmaps/role/${encodeURIComponent(role.trim())}`);
+    return response.data;
+  },
+
+  /**
+   * Generate a learning roadmap for a job or role
+   */
+  async createRoadmap(jobIdOrConfig, durationWeeks = 4, missingSkills = null) {
+    let payload = {};
+
+    if (typeof jobIdOrConfig === 'object' && jobIdOrConfig !== null) {
+      payload = {
+        durationWeeks: 4,
+        ...jobIdOrConfig,
+      };
+    } else if (typeof jobIdOrConfig === 'string') {
+      const cleanVal = jobIdOrConfig.trim();
+      if (/^[0-9a-fA-F]{24}$/.test(cleanVal)) {
+        payload.jobId = cleanVal;
+      } else {
+        payload.targetRole = cleanVal;
+      }
+      payload.durationWeeks = Number(durationWeeks) || 4;
+      if (missingSkills) payload.missingSkills = missingSkills;
+    }
+
     const response = await api.post('/roadmaps', payload);
     return response.data;
   },

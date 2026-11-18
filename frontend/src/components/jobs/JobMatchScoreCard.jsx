@@ -7,7 +7,7 @@ import {
   Star,
   Cpu,
   CheckCircle2,
-  HelpCircle,
+  Award,
 } from 'lucide-react';
 import Card from '../common/Card';
 
@@ -18,7 +18,7 @@ const CATEGORY_META = [
     weight: '35%',
     maxPoints: 35,
     icon: Code2,
-    barColor: 'bg-indigo-600',
+    barColor: 'bg-brand-primary',
   },
   {
     key: 'projectsRelevance',
@@ -26,7 +26,7 @@ const CATEGORY_META = [
     weight: '25%',
     maxPoints: 25,
     icon: FolderGit2,
-    barColor: 'bg-teal-600',
+    barColor: 'bg-brand-sage',
   },
   {
     key: 'educationCompatibility',
@@ -34,7 +34,7 @@ const CATEGORY_META = [
     weight: '15%',
     maxPoints: 15,
     icon: GraduationCap,
-    barColor: 'bg-blue-600',
+    barColor: 'bg-brand-charcoal',
   },
   {
     key: 'experienceInternships',
@@ -42,7 +42,7 @@ const CATEGORY_META = [
     weight: '15%',
     maxPoints: 15,
     icon: Briefcase,
-    barColor: 'bg-orange-600',
+    barColor: 'bg-amber-600',
   },
   {
     key: 'preferredSkills',
@@ -50,7 +50,7 @@ const CATEGORY_META = [
     weight: '10%',
     maxPoints: 10,
     icon: Star,
-    barColor: 'bg-purple-600',
+    barColor: 'bg-brand-primary',
   },
 ];
 
@@ -59,32 +59,32 @@ const getClassificationConfig = (classification) => {
   if (norm.includes('excellent')) {
     return {
       label: 'Excellent Match (85-100)',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      ringColor: 'stroke-emerald-500',
-      textColor: 'text-emerald-700',
+      badgeClass: 'bg-brand-forestLight text-brand-primary border-brand-sageBorder/60',
+      ringColor: '#244B38',
+      textColor: 'text-brand-primary',
     };
   }
   if (norm.includes('strong')) {
     return {
       label: 'Strong Match (70-84)',
-      badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-      ringColor: 'stroke-indigo-500',
-      textColor: 'text-indigo-700',
+      badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+      ringColor: '#2E6B4F',
+      textColor: 'text-emerald-700',
     };
   }
   if (norm.includes('moderate')) {
     return {
       label: 'Moderate Match (50-69)',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
-      ringColor: 'stroke-amber-500',
+      badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+      ringColor: '#B45309',
       textColor: 'text-amber-700',
     };
   }
   return {
     label: 'Low Match (0-49)',
-    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
-    ringColor: 'stroke-rose-500',
-    textColor: 'text-rose-700',
+    badgeClass: 'bg-red-50 text-brand-danger border-red-200',
+    ringColor: '#BE3A34',
+    textColor: 'text-brand-danger',
   };
 };
 
@@ -98,173 +98,157 @@ const JobMatchScoreCard = ({ match }) => {
     jobTitle,
     companyName,
     analysisProvider,
-    matchingExplanation,
-    keyObservations = [],
   } = match;
 
   const config = getClassificationConfig(matchClassification);
 
-  // SVG circular gauge
-  const radius = 64;
+  const radius = 46;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (overallScore / 100) * circumference;
 
   return (
-    <Card className="border border-indigo-100 shadow-sm overflow-hidden bg-gradient-to-b from-white to-slate-50/40">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 gap-3">
+    <Card className="border-brand-border p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-brand-border/70 gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Role Compatibility Engine
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {jobTitle} @ {companyName}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Award className="w-5 h-5 text-brand-primary" />
+            <h3 className="text-lg font-heading font-bold text-brand-charcoal">
+              Match Compatibility Score
+            </h3>
+            <span
+              className={`text-xs font-heading font-bold px-2.5 py-0.5 rounded-full border ${config.badgeClass}`}
+            >
+              {config.label}
             </span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mt-1">
-            Job Compatibility Score
-          </h2>
+          <p className="text-xs text-brand-muted mt-1">
+            Weighted comparison for <strong className="text-brand-charcoal">{jobTitle}</strong> at{' '}
+            <strong className="text-brand-charcoal">{companyName}</strong>
+          </p>
         </div>
 
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 self-start sm:self-auto">
-          <Cpu className="w-3.5 h-3.5 text-slate-500" />
-          <span>
-            Provider:{' '}
-            <strong className="text-slate-800">
-              {analysisProvider === 'fastapi-nlp-engine' ? 'FastAPI NLP Engine' : 'Rule-Based Fallback'}
-            </strong>
+        {analysisProvider && (
+          <span className="text-[11px] font-heading font-medium text-brand-muted bg-brand-bg px-2.5 py-1 rounded-xl border border-brand-border self-start sm:self-auto">
+            Engine: {analysisProvider}
           </span>
-        </div>
+        )}
       </div>
 
-      {/* Main Score Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6 items-center">
-        {/* Circular Gauge */}
-        <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-indigo-50/30 rounded-2xl border border-indigo-100/80">
-          <div className="relative w-40 h-40 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
+      {/* Main Score Dial and Rubric Bars */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Left: Overall Circular Dial */}
+        <div className="lg:col-span-4 flex flex-col items-center justify-center p-6 bg-brand-bg rounded-2xl border border-brand-border text-center">
+          <div className="relative w-36 h-36 flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90">
               <circle
-                cx="80"
-                cy="80"
+                cx="72"
+                cy="72"
                 r={radius}
-                className="stroke-slate-200"
-                strokeWidth="12"
-                fill="none"
+                className="stroke-brand-border"
+                strokeWidth="8"
+                fill="transparent"
               />
               <circle
-                cx="80"
-                cy="80"
+                cx="72"
+                cy="72"
                 r={radius}
-                className={`${config.ringColor} transition-all duration-1000 ease-out`}
-                strokeWidth="12"
+                stroke={config.ringColor}
+                strokeWidth="8"
+                fill="transparent"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
-                fill="none"
+                className="transition-all duration-1000 ease-out"
               />
             </svg>
-            <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className="text-4xl font-extrabold text-slate-900 tracking-tight">
-                {overallScore}%
+            <div className="absolute flex flex-col items-center">
+              <span className="text-4xl font-heading font-black text-brand-charcoal">
+                {overallScore}
               </span>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Match Rating
+              <span className="text-[11px] font-heading font-bold text-brand-muted uppercase tracking-wider">
+                out of 100
               </span>
             </div>
           </div>
 
-          <div className={`mt-4 px-3.5 py-1 rounded-full text-xs font-semibold border ${config.badgeClass}`}>
-            {matchClassification}
+          <div className="mt-4 text-xs font-heading font-bold text-brand-charcoal">
+            Overall Compatibility
           </div>
+          <p className="text-[11px] text-brand-muted mt-0.5 max-w-[200px]">
+            Based on the 35/25/15/15/10 rubric
+          </p>
         </div>
 
-        {/* 5-Category Weighted Rubric */}
+        {/* Right: Rubric Bars */}
         <div className="lg:col-span-8 space-y-3.5">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Weighted Category Breakdown (100% Total)
-            </h3>
-            <span className="text-[11px] text-slate-400">
-              Independently calculated & weighted
-            </span>
-          </div>
+          <h4 className="text-xs font-heading font-bold uppercase tracking-wider text-brand-muted mb-2">
+            Rubric Breakdown & Weights
+          </h4>
 
-          <div className="space-y-3">
-            {CATEGORY_META.map((cat) => {
-              const item = categoryScores[cat.key] || {
-                score: 0,
-                weightedScore: 0,
-                weightPercentage: cat.maxPoints,
-                feedback: '',
-              };
-              const rawScore = typeof item.score === 'number' ? item.score : 0;
-              const weightedPts = typeof item.weightedScore === 'number' ? item.weightedScore : 0;
-              const Icon = cat.icon;
+          {CATEGORY_META.map((cat) => {
+            const item = categoryScores[cat.key] || {};
+            const rawScore =
+              typeof item === 'object' && item !== null && typeof item.score === 'number'
+                ? item.score
+                : typeof item === 'number'
+                ? item
+                : 0;
+            const weightedPts =
+              typeof item === 'object' && item !== null && typeof item.weightedScore === 'number'
+                ? item.weightedScore
+                : rawScore;
+            const maxPoints =
+              typeof item === 'object' && item !== null && typeof item.weightPercentage === 'number'
+                ? item.weightPercentage
+                : cat.maxPoints;
+            const percentage =
+              maxPoints > 0 ? Math.min(100, Math.round((weightedPts / maxPoints) * 100)) : 0;
+            const feedback =
+              typeof item === 'object' && item !== null && typeof item.feedback === 'string'
+                ? item.feedback
+                : '';
+            const Icon = cat.icon;
 
-              return (
-                <div
-                  key={cat.key}
-                  className="p-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center">
-                        <Icon className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="font-semibold text-slate-800">{cat.label}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">({cat.weight} weight)</span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="font-bold text-slate-900">{weightedPts}</span>
-                      <span className="text-[11px] text-slate-400 font-medium"> / {cat.maxPoints} pts</span>
-                      <span className="text-[10px] text-slate-400 ml-1.5">({rawScore}%)</span>
-                    </div>
+            return (
+              <div key={cat.key} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-3.5 h-3.5 text-brand-muted" />
+                    <span className="font-heading font-semibold text-brand-charcoal">
+                      {cat.label}
+                    </span>
+                    <span className="text-[11px] text-brand-muted">
+                      ({cat.weight})
+                    </span>
                   </div>
-
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-full ${cat.barColor} transition-all duration-700 ease-out rounded-full`}
-                      style={{ width: `${Math.min(100, rawScore)}%` }}
-                    />
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-brand-charcoal font-bold">
+                      {weightedPts} / {maxPoints} pts
+                    </span>
+                    <span className="text-[11px] text-brand-muted">
+                      ({rawScore}%)
+                    </span>
                   </div>
-
-                  {item.feedback && (
-                    <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-1">
-                      {item.feedback}
-                    </p>
-                  )}
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="w-full h-2 rounded-full bg-brand-bg border border-brand-border/60 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${cat.barColor}`}
+                    style={{ width: `${Math.min(100, rawScore)}%` }}
+                  />
+                </div>
+
+                {feedback && (
+                  <p className="text-[11px] text-brand-muted leading-relaxed line-clamp-1 pt-0.5">
+                    {feedback}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
-
-      {/* Explanation & Observations */}
-      {(matchingExplanation || (keyObservations && keyObservations.length > 0)) && (
-        <div className="mt-6 pt-5 border-t border-slate-100 space-y-3">
-          {matchingExplanation && (
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-              {matchingExplanation}
-            </p>
-          )}
-
-          {keyObservations && keyObservations.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1">
-              {keyObservations.map((obs, idx) => (
-                <div
-                  key={idx}
-                  className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 text-[11px] text-slate-600 leading-snug"
-                >
-                  {obs}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </Card>
   );
 };

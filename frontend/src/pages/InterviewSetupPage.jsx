@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Award,
   ArrowRight,
+  Target,
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -101,38 +102,44 @@ const InterviewSetupPage = () => {
           setJobs(jobsRes.jobs);
         }
       } catch (err) {
-        // Soft fallback for initial load
+        if (isMounted) {
+          setError(err.message || 'Failed to load background profile context.');
+        }
       } finally {
-        if (isMounted) setIsLoadingInitial(false);
+        if (isMounted) {
+          setIsLoadingInitial(false);
+        }
       }
     };
 
     loadContext();
+
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const handleStartInterview = async (e) => {
-    e.preventDefault();
-    setError('');
+  const handleStartInterview = async () => {
+    const isCustom = selectedRole === 'Custom Role';
+    const effectiveRole = isCustom ? customRole.trim() : selectedRole;
 
-    if (selectedRole === 'Custom Role' && !customRole.trim()) {
-      setError('Please specify the name of your custom role.');
+    if (!effectiveRole || effectiveRole.length < 2) {
+      setError('Please specify a valid role title (at least 2 characters).');
       return;
     }
 
     setIsStarting(true);
+    setError('');
 
     try {
       const payload = {
         role: selectedRole,
-        customRole: selectedRole === 'Custom Role' ? customRole.trim() : null,
+        customRole: isCustom ? effectiveRole : undefined,
         interviewType,
         difficulty,
         totalQuestions,
-        resumeId: useResume && resume?._id ? resume._id : null,
-        jobId: selectedJobId || null,
+        useResumeContext: useResume && Boolean(resume),
+        jobId: selectedJobId || undefined,
       };
 
       const res = await interviewService.createInterview(payload);
@@ -142,296 +149,288 @@ const InterviewSetupPage = () => {
         throw new Error(res?.message || 'Failed to initialize interview session.');
       }
     } catch (err) {
-      setError(err.message || 'Unable to start mock interview. Please try again.');
+      setError(err.message || 'Failed to start mock interview. Please try again.');
+    } finally {
       setIsStarting(false);
     }
   };
 
   if (isLoadingInitial) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-        <Loader2 className="w-8 h-8 text-brand-primary animate-spin" />
-        <p className="text-sm font-medium text-slate-600">
-          Loading your candidate profile and mock interview settings...
+      <div className="py-24 flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-9 h-9 text-brand-primary animate-spin" />
+        <p className="text-sm font-heading font-medium text-brand-muted">
+          Configuring interactive interview room...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-16 max-w-5xl mx-auto">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-brand-navy to-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sky-300 text-xs font-medium">
-            <MessageSquareCode className="w-3.5 h-3.5" />
-            Phase 5 AI Mock Interview System
+    <div className="max-w-4xl mx-auto space-y-8 pb-12">
+      {/* Top Banner */}
+      <div className="bg-brand-charcoal rounded-3xl p-7 sm:p-9 text-white shadow-soft-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-brand-forestLight text-xs font-heading font-semibold">
+            <Target className="w-3.5 h-3.5 text-brand-forestLight" />
+            <span>Interactive AI Simulation</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Configure Your Mock Interview
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-white">
+            AI-Powered Mock Interview Setup
           </h1>
-          <p className="text-slate-300 text-sm max-w-xl">
-            Simulate realistic technical and HR interview rounds tailored to your target job role, difficulty level, and resume experience.
+          <p className="text-[#B2BCB2] text-xs sm:text-sm leading-relaxed font-sans">
+            Configure a realistic interview simulation tailored to your target discipline. Every answer receives immediate, rubric-backed scoring, identified gaps, and an ideal benchmark response.
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/10 hover:bg-white/20 text-white border-white/20 self-start md:self-auto"
-          onClick={() => navigate('/interview-history')}
-        >
-          View Interview History
-        </Button>
+        <div className="flex-shrink-0 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-1 shadow-soft-xs">
+          <span className="text-[#A4B0A4] block">Evaluation Framework</span>
+          <span className="font-heading font-bold text-white block">Multi-Factor Rubric</span>
+          <span className="text-[11px] text-[#A4B0A4] block">Technical Accuracy, STAR Method</span>
+        </div>
       </div>
 
+      {/* Error alert */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-sm text-rose-800">
-          <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
+        <div className="p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 text-brand-danger text-sm flex items-start gap-3 animate-in fade-in-50">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 font-heading font-medium">{error}</div>
         </div>
       )}
 
-      <form onSubmit={handleStartInterview} className="space-y-6">
-        {/* Module A1: Target Job Role Selection */}
-        <Card className="p-6 border-slate-200 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-brand-primary" />
-                1. Select Target Job Role
-              </h3>
-              <p className="text-xs text-slate-500">
-                Choose the engineering or analyst role you want to practice for
-              </p>
-            </div>
-          </div>
+      {/* 1. Target Role Selection */}
+      <Card className="border-brand-border p-6 space-y-4">
+        <div>
+          <h3 className="text-base font-heading font-bold text-brand-charcoal">
+            1. Select Target Discipline
+          </h3>
+          <p className="text-xs text-brand-muted mt-0.5">
+            Choose your focus area to generate tailored questions
+          </p>
+        </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
-            {PREDEFINED_ROLES.map((role) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
+          {PREDEFINED_ROLES.map((role) => {
+            const isSelected = selectedRole === role;
+            return (
               <button
                 key={role}
                 type="button"
                 onClick={() => setSelectedRole(role)}
-                className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all ${
-                  selectedRole === role
-                    ? 'border-brand-primary bg-sky-50 text-brand-navy shadow-xs ring-1 ring-brand-primary'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                className={`p-3 rounded-xl border text-center transition-all duration-150 text-xs ${
+                  isSelected
+                    ? 'border-brand-primary bg-brand-forestLight text-brand-primary font-heading font-bold shadow-soft-xs ring-1 ring-brand-primary'
+                    : 'border-brand-border bg-white text-brand-slate hover:border-brand-borderDark hover:bg-brand-bg font-medium'
                 }`}
               >
                 {role}
               </button>
-            ))}
+            );
+          })}
+        </div>
+
+        {selectedRole === 'Custom Role' && (
+          <div className="pt-2 animate-in fade-in-50">
+            <label className="block text-xs font-heading font-semibold text-brand-charcoal mb-1.5">
+              Enter Custom Role Title <span className="text-brand-danger">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Distributed Systems Engineer, QA Automation Architect"
+              value={customRole}
+              onChange={(e) => setCustomRole(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm bg-white border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary text-brand-charcoal placeholder-brand-muted shadow-soft-xs"
+            />
           </div>
+        )}
+      </Card>
 
-          {selectedRole === 'Custom Role' && (
-            <div className="pt-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Custom Role Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={customRole}
-                onChange={(e) => setCustomRole(e.target.value)}
-                placeholder="e.g. Cloud Security Architect, iOS Engineer, QA Automation"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-              />
-            </div>
-          )}
-        </Card>
+      {/* 2. Interview Type */}
+      <Card className="border-brand-border p-6 space-y-4">
+        <div>
+          <h3 className="text-base font-heading font-bold text-brand-charcoal">
+            2. Interview Format
+          </h3>
+          <p className="text-xs text-brand-muted mt-0.5">
+            Specify the interview round structure
+          </p>
+        </div>
 
-        {/* Module A2: Interview Type */}
-        <Card className="p-6 border-slate-200 space-y-4">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-brand-primary" />
-              2. Interview Round Type
-            </h3>
-            <p className="text-xs text-slate-500">
-              Select technical assessment, behavioral/HR round, or a mixed screen
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-            {INTERVIEW_TYPES.map((t) => (
-              <button
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
+          {INTERVIEW_TYPES.map((t) => {
+            const isSelected = interviewType === t.type;
+            return (
+              <div
                 key={t.type}
-                type="button"
                 onClick={() => setInterviewType(t.type)}
-                className={`p-4 rounded-xl border text-left transition-all space-y-1.5 ${
-                  interviewType === t.type
-                    ? 'border-brand-primary bg-sky-50 shadow-xs ring-1 ring-brand-primary'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                className={`p-4 rounded-xl border cursor-pointer transition-all duration-150 space-y-1.5 ${
+                  isSelected
+                    ? 'border-brand-primary bg-brand-forestLight/50 shadow-soft-xs ring-1 ring-brand-primary'
+                    : 'border-brand-border bg-white hover:border-brand-borderDark hover:bg-brand-bg'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-900">{t.type}</span>
-                  {interviewType === t.type && (
-                    <CheckCircle2 className="w-4 h-4 text-brand-primary" />
-                  )}
+                  <span
+                    className={`text-xs sm:text-sm font-heading font-bold ${
+                      isSelected ? 'text-brand-primary' : 'text-brand-charcoal'
+                    }`}
+                  >
+                    {t.type}
+                  </span>
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      isSelected
+                        ? 'border-brand-primary bg-brand-primary'
+                        : 'border-brand-border bg-white'
+                    }`}
+                  >
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">{t.desc}</p>
-              </button>
-            ))}
+                <p className="text-xs text-brand-muted leading-relaxed">
+                  {t.desc}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* 3. Difficulty Level & Question Count */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-brand-border p-6 space-y-4">
+          <div>
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
+              3. Difficulty Level
+            </h3>
+            <p className="text-xs text-brand-muted mt-0.5">
+              Match candidate seniority target
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-1">
+            {DIFFICULTIES.map((d) => {
+              const isSelected = difficulty === d.level;
+              return (
+                <div
+                  key={d.level}
+                  onClick={() => setDifficulty(d.level)}
+                  className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                    isSelected
+                      ? 'border-brand-primary bg-brand-forestLight text-brand-primary font-heading font-bold shadow-soft-xs'
+                      : 'border-brand-border bg-white text-brand-slate hover:border-brand-borderDark hover:bg-brand-bg font-medium'
+                  }`}
+                >
+                  <span className="text-xs">{d.level}</span>
+                  <span className="text-[11px] text-brand-muted">{d.desc}</span>
+                </div>
+              );
+            })}
           </div>
         </Card>
 
-        {/* Module A3 & A4: Difficulty & Question Count */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Difficulty */}
-          <Card className="p-6 border-slate-200 space-y-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Compass className="w-4 h-4 text-brand-primary" />
-                3. Difficulty Level
-              </h3>
-              <p className="text-xs text-slate-500">
-                Calibrate question complexity to match your experience
-              </p>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.level}
-                  type="button"
-                  onClick={() => setDifficulty(d.level)}
-                  className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
-                    difficulty === d.level
-                      ? 'border-brand-primary bg-sky-50 shadow-xs ring-1 ring-brand-primary'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div>
-                    <span className="text-sm font-bold text-slate-900 block">
-                      {d.level}
-                    </span>
-                    <span className="text-xs text-slate-500">{d.desc}</span>
-                  </div>
-                  {difficulty === d.level && (
-                    <CheckCircle2 className="w-4 h-4 text-brand-primary" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </Card>
-
-          {/* Number of Questions */}
-          <Card className="p-6 border-slate-200 space-y-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-brand-primary" />
-                4. Number of Questions
-              </h3>
-              <p className="text-xs text-slate-500">
-                Choose the length of your mock interview session
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 pt-1">
-              {QUESTION_COUNTS.map((cnt) => (
-                <button
-                  key={cnt}
-                  type="button"
-                  onClick={() => setTotalQuestions(cnt)}
-                  className={`p-4 rounded-xl border text-center transition-all ${
-                    totalQuestions === cnt
-                      ? 'border-brand-primary bg-sky-50 shadow-xs ring-1 ring-brand-primary'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <span className="text-2xl font-black text-brand-navy block">
-                    {cnt}
-                  </span>
-                  <span className="text-xs text-slate-500 font-medium">Questions</span>
-                </button>
-              ))}
-            </div>
-
-            <p className="text-xs text-slate-500 italic pt-2">
-              Tip: A 5-question session takes ~15 minutes. A 10 or 15-question session provides comprehensive multi-topic preparation.
-            </p>
-          </Card>
-        </div>
-
-        {/* Module A5: Personalization (Resume & Target Job) */}
-        <Card className="p-6 border-slate-200 space-y-4">
+        <Card className="border-brand-border p-6 space-y-4">
           <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-brand-primary" />
-              5. Personalization Context (Optional)
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
+              4. Session Length
             </h3>
-            <p className="text-xs text-slate-500">
-              Personalize question generation using your uploaded resume and saved target job descriptions
+            <p className="text-xs text-brand-muted mt-0.5">
+              Number of questions in this practice run
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            {/* Resume Personalization */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2.5">
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 cursor-pointer">
-                <input
-                  type="checkbox"
-                  disabled={!resume}
-                  checked={useResume && Boolean(resume)}
-                  onChange={(e) => setUseResume(e.target.checked)}
-                  className="rounded text-brand-primary focus:ring-brand-primary w-4 h-4"
-                />
-                <span>Personalize with My Uploaded Resume</span>
-              </label>
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            {QUESTION_COUNTS.map((count) => {
+              const isSelected = totalQuestions === count;
+              return (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => setTotalQuestions(count)}
+                  className={`p-4 rounded-xl border text-center transition-all ${
+                    isSelected
+                      ? 'border-brand-primary bg-brand-forestLight text-brand-primary font-heading font-bold shadow-soft-xs'
+                      : 'border-brand-border bg-white text-brand-slate hover:border-brand-borderDark hover:bg-brand-bg font-medium'
+                  }`}
+                >
+                  <span className="text-xl font-heading font-black block">{count}</span>
+                  <span className="text-[11px] text-brand-muted block mt-0.5">Questions</span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      </div>
 
-              {resume ? (
-                <p className="text-xs text-slate-600 pl-6">
-                  Active file: <strong className="text-slate-800">{resume.originalFileName}</strong>.
-                  Questions will reflect your extracted projects and technical skills.
-                </p>
-              ) : (
-                <p className="text-xs text-amber-700 pl-6">
-                  No active resume uploaded. You can still practice general role-based interviews!
-                </p>
-              )}
+      {/* 5. Dynamic Context Integration */}
+      <Card className="border-brand-border p-6 space-y-4">
+        <div>
+          <h3 className="text-base font-heading font-bold text-brand-charcoal">
+            5. Dynamic Context Integration
+          </h3>
+          <p className="text-xs text-brand-muted mt-0.5">
+            Tailor questions using your uploaded resume profile and saved job postings
+          </p>
+        </div>
+
+        <div className="space-y-4 pt-1">
+          {/* Resume Context Toggle */}
+          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-brand-border bg-brand-bg cursor-pointer">
+            <input
+              type="checkbox"
+              checked={useResume && Boolean(resume)}
+              disabled={!resume}
+              onChange={(e) => setUseResume(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded text-brand-primary focus:ring-brand-primary/20 border-brand-border"
+            />
+            <div className="text-xs">
+              <span className="font-heading font-bold text-brand-charcoal block">
+                Tailor Questions to Uploaded Resume
+              </span>
+              <span className="text-brand-muted block mt-0.5">
+                {resume
+                  ? `Incorporates technologies from "${resume.originalFileName}"`
+                  : 'No resume uploaded yet (upload on dashboard to enable)'}
+              </span>
             </div>
+          </label>
 
-            {/* Target Job Personalization */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2.5">
-              <label className="block text-sm font-semibold text-slate-800">
-                Target Specific Job Description (Phase 4)
+          {/* Job Description Dropdown (Optional) */}
+          {jobs.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-heading font-bold uppercase tracking-wider text-brand-muted">
+                Target Job Requirements Context (Optional)
               </label>
               <select
                 value={selectedJobId}
                 onChange={(e) => setSelectedJobId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                className="w-full text-xs sm:text-sm bg-white border border-brand-border rounded-xl py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary text-brand-charcoal font-medium shadow-soft-xs"
               >
-                <option value="">None (Standard Role Curriculum)</option>
-                {jobs.map((job) => (
-                  <option key={job._id} value={job._id}>
-                    {job.jobTitle} - {job.companyName || 'Saved Job'}
+                <option value="">No specific job posting selected</option>
+                {jobs.map((j) => (
+                  <option key={j._id} value={j._id}>
+                    {j.jobTitle} — {j.companyName}
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-slate-500">
-                If selected, questions will emphasize requirements specified in this job description.
-              </p>
             </div>
-          </div>
-        </Card>
-
-        {/* Action Button */}
-        <div className="flex items-center justify-end gap-4 pt-2">
-          <Button
-            type="submit"
-            size="lg"
-            variant="primary"
-            isLoading={isStarting}
-            disabled={isStarting}
-            className="w-full sm:w-auto px-8"
-            icon={ArrowRight}
-          >
-            {isStarting ? 'Generating Interview Questions...' : 'Start Mock Interview'}
-          </Button>
+          )}
         </div>
-      </form>
+      </Card>
+
+      {/* Start Button */}
+      <div className="pt-2 flex justify-end">
+        <Button
+          variant="primary"
+          size="lg"
+          icon={ArrowRight}
+          isLoading={isStarting}
+          onClick={handleStartInterview}
+          className="w-full sm:w-auto font-heading font-semibold"
+        >
+          Initialize & Enter Interview Room
+        </Button>
+      </div>
     </div>
   );
 };

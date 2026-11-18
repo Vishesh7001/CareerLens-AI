@@ -683,6 +683,393 @@ const runFallbackCareerRecommendations = (resumeData, jobDescription = null, tar
   };
 };
 
+const getBeginnerFriendlyWeeklyModule = (skillName, weekNum, totalWeeks, jobTitle, targetSkills) => {
+  const norm = (skillName || '').toLowerCase().trim();
+  const isFinalWeek = weekNum === totalWeeks && totalWeeks >= 3;
+
+  if (isFinalWeek) {
+    const focusRoles = targetSkills && targetSkills.length > 0 ? targetSkills.slice(0, 3).join(', ') : 'core technical tools';
+    return {
+      title: `Week ${weekNum}: Build Your ${jobTitle} Showcase Project`,
+      learningObjective: `Combine everything you learned into one complete project you can proudly put on your resume and show to employers.`,
+      skillToLearn: `${jobTitle} Portfolio Project`,
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        `Plan a practical application that solves an everyday problem using ${focusRoles}`,
+        'Connect your user interface, backend logic, and data storage into one working system',
+        'Write a clear, friendly README file with project screenshots, features, and setup steps',
+        'Practice explaining your project in simple, natural words for upcoming interviews',
+      ],
+      practicalExercises: [
+        'Test all buttons, forms, and pages to make sure there are no broken links or errors',
+        'Deploy your project to a free hosting service so anyone can test it with a live link',
+        'Practice answering: "What does this project do and what was the most interesting part you built?"',
+      ],
+      suggestedMiniProjects: [
+        `Complete ${jobTitle} showcase project with a live web link and public GitHub repository`,
+      ],
+      expectedOutcome: `You will have an impressive, working portfolio project that demonstrates your hands-on skills to recruiters.`,
+    };
+  }
+
+  // 1. APIs / RESTful APIs
+  if (norm.includes('api') || norm.includes('rest') || norm.includes('endpoint')) {
+    return {
+      title: `Week ${weekNum}: Learn API Basics and Connect Services`,
+      learningObjective: `Understand how applications talk to each other and learn how to fetch, send, and display data using web APIs.`,
+      skillToLearn: 'RESTful APIs',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand what an API is and why modern websites and mobile apps use them',
+        'Learn how common requests work: GET (view data), POST (create data), PUT (update), and DELETE (remove)',
+        'Learn how to read and write JSON data, the universal language of web applications',
+        'Use beginner-friendly tools like Postman to test sending and receiving API requests',
+      ],
+      practicalExercises: [
+        'Send your first GET request to a free public API (such as weather or quote data) using Postman',
+        'Build a simple API endpoint that receives user data and responds with a friendly JSON message',
+        'Test what happens when requested data is missing, returning a standard 404 error code',
+      ],
+      suggestedMiniProjects: [
+        'Build a simple application that fetches live data from an API and displays it on screen',
+      ],
+      expectedOutcome: `You will understand how web APIs work and be able to connect your application to external services with confidence.`,
+    };
+  }
+
+  // 2. Docker / Containers
+  if (norm.includes('docker') || norm.includes('container')) {
+    return {
+      title: `Week ${weekNum}: Learn Docker Basics and Run Apps in Containers`,
+      learningObjective: `Understand what Docker does and learn how to run your application inside an isolated, reliable container.`,
+      skillToLearn: 'Docker & Containers',
+      priority: weekNum <= 2 ? 'High' : 'Medium',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Learn what containers are and why developers use Docker to make sure apps run the same way everywhere',
+        'Install Docker Desktop on your computer and learn essential starter commands',
+        'Understand what a Dockerfile is and how it tells Docker how to package your code and tools',
+        'Learn how Docker Compose launches both your web app and a database together with one command',
+      ],
+      practicalExercises: [
+        'Write a simple 5-line Dockerfile for a sample project on your machine',
+        'Build a Docker image and run it locally in your browser',
+        'Practice viewing running containers and stopping them from the terminal or Docker Desktop',
+      ],
+      suggestedMiniProjects: [
+        'Package a small web application inside Docker so anyone can run it on their computer with one command',
+      ],
+      expectedOutcome: `You will understand how Docker works and be able to run and share containerized apps with ease.`,
+    };
+  }
+
+  // 3. React / Frontend UI
+  if (norm.includes('react') || norm.includes('frontend') || norm.includes('ui')) {
+    return {
+      title: `Week ${weekNum}: Build Interactive User Interfaces with React`,
+      learningObjective: `Learn the fundamental building blocks of React and create interactive, modern web pages with reusable components.`,
+      skillToLearn: 'React',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand how React breaks web pages into reusable pieces called components (like buttons, navbars, and cards)',
+        'Learn JSX syntax, which allows writing HTML-like code directly inside your JavaScript files',
+        'Learn how useState holds dynamic information that changes when users click, type, or interact',
+        'Learn how props allow parent components to pass data and instructions down to child components',
+      ],
+      practicalExercises: [
+        'Build a small interactive counter with plus and minus buttons to practice useState',
+        'Create a reusable ProductCard component that displays an image, title, price, and buy button',
+        'Render a list of items dynamically on the screen using JavaScript\'s map function in React',
+      ],
+      suggestedMiniProjects: [
+        'Build an interactive To-Do List or Recipe App with add, mark as complete, and delete actions',
+      ],
+      expectedOutcome: `You will be able to build dynamic, responsive web interfaces using modern React components.`,
+    };
+  }
+
+  // 4. Node.js / Express / Backend
+  if (norm.includes('node') || norm.includes('express') || norm.includes('backend') || norm.includes('server')) {
+    return {
+      title: `Week ${weekNum}: Build Your First Backend Server with Node.js and Express`,
+      learningObjective: `Learn how backend servers work and build your own web server that handles user requests and URLs.`,
+      skillToLearn: 'Node.js & Express',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand the role of backend servers in processing business logic and protecting sensitive data',
+        'Set up a Node.js project using npm init and install the Express library',
+        'Learn how Express routes handle visits to different pages and URLs like /users or /products',
+        'Understand how request and response objects send HTML or JSON back to the browser',
+      ],
+      practicalExercises: [
+        'Create a basic Express server that listens on port 5000 and responds to visit requests',
+        'Create a GET /api/items endpoint that returns a list of items as JSON',
+        'Create a POST /api/items endpoint that accepts new items sent from a form or API client',
+      ],
+      suggestedMiniProjects: [
+        'Build a Notes or Task Manager API that lets users view, create, and delete notes',
+      ],
+      expectedOutcome: `You will know how to create backend servers and build REST API endpoints from scratch.`,
+    };
+  }
+
+  // 5. Databases / MongoDB / SQL / PostgreSQL / MySQL
+  if (norm.includes('mongo') || norm.includes('sql') || norm.includes('database') || norm.includes('postgres') || norm.includes('data store')) {
+    return {
+      title: `Week ${weekNum}: Store and Manage Application Data with Databases`,
+      learningObjective: `Learn how databases store information permanently and how to connect your backend application to a database.`,
+      skillToLearn: skillName,
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand why applications need persistent databases instead of storing data in temporary variables',
+        'Learn the four core database operations (CRUD): Create, Read, Update, and Delete',
+        'Set up a free cloud database (like MongoDB Atlas or Supabase PostgreSQL)',
+        'Learn how to connect your backend code to the database using an easy library (Mongoose or Prisma)',
+      ],
+      practicalExercises: [
+        'Connect your backend server to your database and test saving your first document',
+        'Write queries to find specific records (such as finding all users created today)',
+        'Update an existing record and verify the change in your database dashboard',
+      ],
+      suggestedMiniProjects: [
+        'Build a Contact Book API that stores, updates, and searches contact cards in a real database',
+      ],
+      expectedOutcome: `You will be able to connect any application to a real database and perform all essential data operations.`,
+    };
+  }
+
+  // 6. Testing / QA / Unit Testing
+  if (norm.includes('test') || norm.includes('qa') || norm.includes('jest')) {
+    return {
+      title: `Week ${weekNum}: Test Your Code to Prevent Bugs and Errors`,
+      learningObjective: `Learn how to write simple automated tests so you can be confident your code works properly before deploying.`,
+      skillToLearn: 'Automated Testing',
+      priority: 'Medium',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand why testing saves time and prevents embarrassing bugs in production',
+        'Learn what a unit test is: a small script that tests one specific function or feature',
+        'Explore common testing tools and learn how to write test cases with assert or expect',
+        'Learn how to test both normal inputs (happy path) and edge cases (like empty inputs or invalid numbers)',
+      ],
+      practicalExercises: [
+        'Write 3 unit tests for a simple calculator or string-formatting function',
+        'Test an API endpoint to verify it returns a 200 success status when given valid data',
+        'Test that an API endpoint properly rejects missing inputs with a helpful 400 error message',
+      ],
+      suggestedMiniProjects: [
+        'Add automated test coverage to an existing project and verify all tests pass with one command',
+      ],
+      expectedOutcome: `You will be able to write automated tests that catch bugs early and prove your code is reliable.`,
+    };
+  }
+
+  // 7. Git / GitHub / Version Control
+  if (norm.includes('git') || norm.includes('version control')) {
+    return {
+      title: `Week ${weekNum}: Track Code Changes and Collaborate with Git & GitHub`,
+      learningObjective: `Master version control basics so you never lose your work and can showcase your code on GitHub.`,
+      skillToLearn: 'Git & GitHub',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand what version control is and why every software developer uses Git daily',
+        'Learn the primary Git commands: git init, git add, git commit, and git push',
+        'Create a GitHub account and push your first local repository to the cloud',
+        'Learn how Git branches let you experiment on new features without breaking your main code',
+      ],
+      practicalExercises: [
+        'Initialize a Git repository, make 3 meaningful commits with clear messages, and push to GitHub',
+        'Create a new branch, add a feature, commit it, and merge it back into main',
+        'Write a clean README.md file explaining what your project does with screenshots',
+      ],
+      suggestedMiniProjects: [
+        'Publish a polished project repository on GitHub with clean commit history and setup instructions',
+      ],
+      expectedOutcome: `You will be able to comfortably save, track, and showcase all your code on GitHub like a professional.`,
+    };
+  }
+
+  // 8. Cloud / AWS / Deployment
+  if (norm.includes('cloud') || norm.includes('aws') || norm.includes('deploy') || norm.includes('ci/cd') || norm.includes('devops')) {
+    return {
+      title: `Week ${weekNum}: Deploy Your Application to the Live Internet`,
+      learningObjective: `Learn how to host your application on the web so anyone with a link can use it from anywhere.`,
+      skillToLearn: 'Cloud Deployment',
+      priority: 'Medium',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand the difference between running an app on your local machine vs. hosting it in the cloud',
+        'Explore beginner-friendly hosting platforms (like Vercel, Render, or Netlify)',
+        'Learn how environment variables keep secret passwords and database keys safe in production',
+        'Connect your GitHub repository to a hosting platform for automatic deployments on push',
+      ],
+      practicalExercises: [
+        'Deploy a frontend web app on Vercel or Netlify and get a public live URL',
+        'Deploy a backend API server on Render and test it using a public link',
+        'Configure environment variables on your hosting dashboard so your live app connects to your database',
+      ],
+      suggestedMiniProjects: [
+        'Deploy a complete full-stack web application with a live URL to share on your resume and LinkedIn',
+      ],
+      expectedOutcome: `You will know how to take any web project from your computer and deploy it live to the internet.`,
+    };
+  }
+
+  // 9. Python / Scripting
+  if (norm.includes('python')) {
+    return {
+      title: `Week ${weekNum}: Python Fundamentals and Helpful Automation Scripts`,
+      learningObjective: `Learn Python syntax, essential data structures, and how to write scripts that automate everyday tasks.`,
+      skillToLearn: 'Python',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Learn Python syntax: variables, conditionals (if/else), loops, and functions',
+        'Master Python\'s built-in data collections: lists, dictionaries, and sets',
+        'Learn how to read and write files (text, CSV, JSON) on your computer using Python',
+        'Install useful third-party packages using pip (Python\'s package installer)',
+      ],
+      practicalExercises: [
+        'Write a script that counts word frequencies in a text document',
+        'Write a function that reads a CSV file and calculates the average value of a column',
+        'Create a simple interactive quiz program that asks users questions and calculates their score',
+      ],
+      suggestedMiniProjects: [
+        'Build an automated file organizer that sorts files on your computer into folders by extension',
+      ],
+      expectedOutcome: `You will have a strong grasp of Python programming and be able to automate everyday file and data tasks.`,
+    };
+  }
+
+  // 10. Data Analysis / Pandas
+  if (norm.includes('pandas') || norm.includes('data analysis') || norm.includes('numpy')) {
+    return {
+      title: `Week ${weekNum}: Explore and Clean Real-World Data with Pandas`,
+      learningObjective: `Learn how to load, filter, clean, and analyze spreadsheets and datasets using Python and Pandas.`,
+      skillToLearn: 'Data Analysis with Pandas',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Understand what Pandas is and how its DataFrames represent tables of data',
+        'Learn how to load CSV, Excel, and JSON data files into Pandas with one line of code',
+        'Learn how to inspect datasets: check column types, summary statistics, and missing values',
+        'Learn how to filter rows and select columns based on conditions (like sales > 1000)',
+      ],
+      practicalExercises: [
+        'Load a real dataset (like student test scores or movie ratings) and find the top 5 highest values',
+        'Clean missing or null data by filling values or removing empty rows',
+        'Group data by category (using groupby) and compute totals and averages',
+      ],
+      suggestedMiniProjects: [
+        'Build an Exploratory Data Analysis report answering 5 interesting questions about a real dataset',
+      ],
+      expectedOutcome: `You will be able to take messy spreadsheets and datasets, clean them up, and extract useful insights.`,
+    };
+  }
+
+  // 11. JavaScript / TypeScript
+  if (norm.includes('javascript') || norm.includes('typescript') || norm.includes('js') || norm.includes('ts')) {
+    return {
+      title: `Week ${weekNum}: JavaScript Essentials and Modern Syntax`,
+      learningObjective: `Master core JavaScript concepts that power modern web and frontend development.`,
+      skillToLearn: 'JavaScript Essentials',
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        'Learn modern JavaScript syntax: const/let, arrow functions, template strings, and destructuring',
+        'Understand how asynchronous code works: Promises, async/await, and fetching web data',
+        'Learn how JavaScript interacts with web pages: listening for button clicks and updating HTML',
+        'Understand how to avoid common beginner bugs using console.log and basic browser developer tools',
+      ],
+      practicalExercises: [
+        'Write an async function that fetches data from an API and logs the result',
+        'Filter and transform an array of student objects using map and filter',
+        'Build a simple form validation function that checks if an email contains an @ symbol',
+      ],
+      suggestedMiniProjects: [
+        'Build an interactive currency converter or tip calculator in the browser',
+      ],
+      expectedOutcome: `You will have a solid foundation in modern JavaScript and be ready to learn web frameworks like React or Node.js.`,
+    };
+  }
+
+  // 12. Dynamic Beginner-Friendly Fallback for Any Other Skill or Custom Role
+  if (weekNum === 1) {
+    return {
+      title: `Week 1: Learn ${skillName} Basics and Set Up Your Environment`,
+      learningObjective: `Understand what ${skillName} is, why developers use it, and set up your workspace to write your first code.`,
+      skillToLearn: skillName,
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        `Learn the basic concepts of ${skillName} and how it fits into modern software development`,
+        'Install the necessary software, code editor plugins, and tools on your computer',
+        'Read simple examples and understand common patterns used by developers',
+        'Learn how to look up documentation and troubleshoot error messages when you get stuck',
+      ],
+      practicalExercises: [
+        `Write a simple beginner exercise exploring the basic features of ${skillName}`,
+        'Test making small changes to see how the output changes',
+        'Practice fixing a deliberate typo or error to get comfortable with debugging',
+      ],
+      suggestedMiniProjects: [
+        `Build a small starter project demonstrating the fundamental features of ${skillName}`,
+      ],
+      expectedOutcome: `You will feel comfortable with the core ideas of ${skillName} and be ready to build more complex features.`,
+    };
+  }
+
+  if (weekNum === 2) {
+    return {
+      title: `Week 2: Build Useful Features with ${skillName}`,
+      learningObjective: `Take your knowledge of ${skillName} further by connecting it with data storage and handling user requests.`,
+      skillToLearn: skillName,
+      priority: 'High',
+      estimatedDuration: '1 Week (6-8 flexible hours)',
+      learningSequence: [
+        `Learn how ${skillName} works together with databases and web services`,
+        'Understand how to keep user data secure and organize your code into clean folders',
+        'Learn common design patterns that make your code easy to read and maintain',
+      ],
+      practicalExercises: [
+        `Build a feature that saves and retrieves data using ${skillName}`,
+        'Test how your code handles invalid inputs or slow internet connections',
+      ],
+      suggestedMiniProjects: [
+        `Build a practical mini-application powered by ${skillName} that solves an everyday task`,
+      ],
+      expectedOutcome: `You will be able to build functional, well-organized features using ${skillName}.`,
+    };
+  }
+
+  return {
+    title: `Week ${weekNum}: Test, Improve, and Package Your ${skillName} Project`,
+    learningObjective: `Make your project reliable, fix errors, and learn how developers prepare code for real users.`,
+    skillToLearn: skillName,
+    priority: 'Medium',
+    estimatedDuration: '1 Week (6-8 flexible hours)',
+    learningSequence: [
+      'Learn how to test your code automatically so you don\'t have to check everything by hand',
+      'Understand how to package your application so it runs easily on any computer',
+      'Learn simple ways to speed up your code and organize your files neatly',
+    ],
+    practicalExercises: [
+      'Write 3 simple tests to verify your project works under different conditions',
+      'Clean up your code, add helpful comments, and test running it in a clean environment',
+    ],
+    suggestedMiniProjects: [
+      `Package and document your ${skillName} application with clear instructions so anyone can run it`,
+    ],
+    expectedOutcome: `You will know how to write reliable, well-tested code and prepare applications for deployment.`,
+  };
+};
+
 const runFallbackLearningRoadmap = (resumeData, jobDescription, jobTitle = 'Software Engineer', companyName = 'Company', missingSkills = null, durationWeeks = 4) => {
   const targetSkills = [];
   if (Array.isArray(missingSkills) && missingSkills.length > 0) {
@@ -712,78 +1099,19 @@ const runFallbackLearningRoadmap = (resumeData, jobDescription, jobTitle = 'Soft
   for (let i = 0; i < numWeeks; i++) {
     const skillName = targetSkills[i % targetSkills.length];
     const weekNum = i + 1;
-
-    let title, objective, seq, exercises, miniProjects, outcome;
-
-    if (weekNum === 1) {
-      title = `Week 1: Core Fundamentals & Environment Setup with ${skillName}`;
-      objective = `Establish a solid foundation in ${skillName} and environment configuration.`;
-      seq = [
-        `Study ${skillName} official syntax, concepts, and best practice architecture`,
-        'Set up local development environment and run sample exercises',
-        'Implement error handling and input validation routines',
-      ];
-      exercises = [
-        `Build a standalone module exercising core ${skillName} features`,
-        'Write 3 unit tests verifying happy and edge-case execution',
-      ];
-      miniProjects = [`Standalone CLI utility leveraging ${skillName}`];
-      outcome = `Confident practical command of ${skillName} fundamentals.`;
-    } else if (weekNum === 2) {
-      title = `Week 2: Architectural Patterns & Integration with ${skillName}`;
-      objective = `Deep dive into production integration and persistence using ${skillName}.`;
-      seq = [
-        `Integrate ${skillName} with persistent database and backend API layers`,
-        'Implement structured logging and security sanitization',
-        'Refactor into modular and reusable service components',
-      ];
-      exercises = [
-        'Implement service class with retry logic and error logging',
-        'Benchmark response times and optimize data queries',
-      ];
-      miniProjects = [`Database-backed microservice implementing ${skillName}`];
-      outcome = `Ability to write maintainable, production-ready code with ${skillName}.`;
-    } else if (weekNum === 3) {
-      title = `Week 3: Automated Testing & Containerization with ${skillName}`;
-      objective = 'Containerize application, write automated test suites, and configure CI/CD.';
-      seq = [
-        `Write comprehensive integration tests for ${skillName} services`,
-        'Create a lightweight multi-stage Dockerfile',
-        'Configure GitHub Actions pipeline to run tests automatically',
-      ];
-      exercises = [
-        'Achieve 80%+ test code branch coverage',
-        'Build and test container image with docker-compose',
-      ];
-      miniProjects = ['Containerized application with automated GitHub Actions CI'];
-      outcome = 'Competence in production testing and automated deployment.';
-    } else {
-      title = `Week ${weekNum}: Capstone Showcase Project & Interview Readiness`;
-      objective = 'Synthesize all skills into a portfolio capstone project.';
-      seq = [
-        `Design end-to-end full application integrating ${targetSkills.slice(0, 3).join(', ')}`,
-        'Write thorough README with architecture diagrams and API docs',
-        'Deploy live demo and practice explaining design tradeoffs for interviews',
-      ];
-      exercises = [
-        'Perform code review and optimize performance bottlenecks',
-        'Simulate technical interview explanation of system architecture',
-      ];
-      miniProjects = [`Production ${jobTitle} Capstone Application with live demo and GitHub repository`];
-      outcome = 'Job-ready portfolio project showcasing hands-on qualifications.';
-    }
+    const moduleData = getBeginnerFriendlyWeeklyModule(skillName, weekNum, numWeeks, jobTitle, targetSkills);
 
     items.push({
       weekNumber: weekNum,
-      title,
-      learningObjective: objective,
-      skillToLearn: skillName,
-      priority: weekNum <= 2 ? 'High' : 'Medium',
-      estimatedDuration: '1 Week (8-10 hours)',
-      learningSequence: seq,
-      practicalExercises: exercises,
-      suggestedMiniProjects: miniProjects,
-      expectedOutcome: outcome,
+      title: moduleData.title,
+      learningObjective: moduleData.learningObjective,
+      skillToLearn: moduleData.skillToLearn || skillName,
+      priority: moduleData.priority || (weekNum <= 2 ? 'High' : 'Medium'),
+      estimatedDuration: moduleData.estimatedDuration || '1 Week (6-8 flexible hours)',
+      learningSequence: moduleData.learningSequence,
+      practicalExercises: moduleData.practicalExercises,
+      suggestedMiniProjects: moduleData.suggestedMiniProjects,
+      expectedOutcome: moduleData.expectedOutcome,
       completed: false,
       completedAt: null,
     });
@@ -793,7 +1121,7 @@ const runFallbackLearningRoadmap = (resumeData, jobDescription, jobTitle = 'Soft
     title: `Personalized Learning Roadmap for ${jobTitle}`,
     targetRole: jobTitle,
     companyName: companyName || null,
-    summary: `A structured ${numWeeks}-week learning curriculum engineered to eliminate qualification gaps for ${jobTitle} at ${companyName || 'your target employer'}.`,
+    summary: `A friendly, step-by-step ${numWeeks}-week learning guide designed to help you master core skills for ${jobTitle} at your own pace, with hands-on practice every week.`,
     totalWeeks: numWeeks,
     items,
     progressPercentage: 0,

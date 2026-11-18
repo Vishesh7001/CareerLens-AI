@@ -44,7 +44,19 @@ export const interviewService = {
   /**
    * Save a draft answer for a question
    */
-  async saveDraft(interviewId, draftAnswer, questionIndex = null) {
+  async saveDraft(interviewId, draftAnswerOrQuestionId, maybeAnswer, maybeIndex = null) {
+    let draftAnswer = '';
+    let questionIndex = null;
+
+    if (maybeAnswer !== undefined && typeof maybeAnswer === 'string') {
+      draftAnswer = maybeAnswer;
+      if (typeof draftAnswerOrQuestionId === 'number') questionIndex = draftAnswerOrQuestionId;
+      if (typeof maybeIndex === 'number') questionIndex = maybeIndex;
+    } else {
+      draftAnswer = draftAnswerOrQuestionId || '';
+      if (typeof maybeAnswer === 'number') questionIndex = maybeAnswer;
+    }
+
     const payload = { draftAnswer };
     if (typeof questionIndex === 'number') {
       payload.questionIndex = questionIndex;
@@ -56,7 +68,19 @@ export const interviewService = {
   /**
    * Submit an answer and trigger evaluation
    */
-  async submitAnswer(interviewId, answer, questionIndex = null) {
+  async submitAnswer(interviewId, answerOrQuestionId, maybeAnswer, maybeIndex = null) {
+    let answer = '';
+    let questionIndex = null;
+
+    if (maybeAnswer !== undefined && typeof maybeAnswer === 'string') {
+      answer = maybeAnswer;
+      if (typeof answerOrQuestionId === 'number') questionIndex = answerOrQuestionId;
+      if (typeof maybeIndex === 'number') questionIndex = maybeIndex;
+    } else {
+      answer = answerOrQuestionId || '';
+      if (typeof maybeAnswer === 'number') questionIndex = maybeAnswer;
+    }
+
     const payload = { answer };
     if (typeof questionIndex === 'number') {
       payload.questionIndex = questionIndex;

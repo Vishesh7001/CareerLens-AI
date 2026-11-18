@@ -8,7 +8,6 @@ import {
   Map,
   MessageSquareCode,
   ArrowRight,
-  ExternalLink,
 } from 'lucide-react';
 import Card from '../common/Card';
 
@@ -18,17 +17,17 @@ const RecentActivity = ({ activities = [] }) => {
   const getIcon = (type) => {
     switch (type) {
       case 'resume_upload':
-        return <FileCheck2 className="w-4 h-4 text-emerald-600" />;
+        return <FileCheck2 className="w-4 h-4 text-brand-primary" />;
       case 'resume_analysis':
-        return <Sparkles className="w-4 h-4 text-sky-600" />;
+        return <Sparkles className="w-4 h-4 text-brand-sage" />;
       case 'job_match':
-        return <Briefcase className="w-4 h-4 text-indigo-600" />;
+        return <Briefcase className="w-4 h-4 text-brand-primary" />;
       case 'roadmap_milestone':
-        return <Map className="w-4 h-4 text-teal-600" />;
+        return <Map className="w-4 h-4 text-brand-primary" />;
       case 'interview_completed':
-        return <MessageSquareCode className="w-4 h-4 text-purple-600" />;
+        return <MessageSquareCode className="w-4 h-4 text-brand-charcoal" />;
       default:
-        return <Clock className="w-4 h-4 text-slate-500" />;
+        return <Clock className="w-4 h-4 text-brand-muted" />;
     }
   };
 
@@ -47,40 +46,40 @@ const RecentActivity = ({ activities = [] }) => {
   };
 
   return (
-    <Card className="border-slate-200 p-6 space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+    <Card className="border-brand-border p-6 space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-brand-border/70">
         <div>
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-brand-primary" />
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
               Recent Career Activity
             </h3>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-brand-muted mt-0.5">
             Real timeline of resume updates, evaluations, milestones, and interview sessions
           </p>
         </div>
       </div>
 
       {activities.length > 0 ? (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-brand-border/50">
           {activities.map((act) => (
             <div
               key={act.id}
-              className="py-3.5 flex items-start justify-between gap-4 hover:bg-slate-50/60 px-2 rounded-xl transition-colors"
+              className="py-3.5 flex items-start justify-between gap-4 hover:bg-brand-bg px-2 rounded-xl transition-colors group"
             >
               <div className="flex items-start gap-3 min-w-0">
-                <div className="p-2 rounded-xl bg-slate-100 flex-shrink-0 mt-0.5">
+                <div className="p-2 rounded-xl bg-white border border-brand-border flex-shrink-0 mt-0.5 shadow-soft-xs">
                   {getIcon(act.type)}
                 </div>
                 <div className="min-w-0 space-y-0.5">
-                  <span className="text-xs font-bold text-slate-900 block truncate">
+                  <span className="text-xs font-heading font-bold text-brand-charcoal block truncate">
                     {act.title}
                   </span>
-                  <p className="text-xs text-slate-500 leading-relaxed truncate max-w-md">
+                  <p className="text-xs text-brand-muted leading-relaxed truncate max-w-md">
                     {act.description}
                   </p>
-                  <span className="text-[10px] text-slate-400 block pt-0.5">
+                  <span className="text-[10px] text-brand-muted/80 block pt-0.5">
                     {formatDate(act.timestamp)}
                   </span>
                 </div>
@@ -90,7 +89,7 @@ const RecentActivity = ({ activities = [] }) => {
                 <button
                   type="button"
                   onClick={() => navigate(act.link)}
-                  className="text-xs font-semibold text-brand-primary hover:underline flex items-center gap-1 flex-shrink-0 self-center"
+                  className="text-xs font-heading font-semibold text-brand-primary hover:text-brand-primaryHover flex items-center gap-1 flex-shrink-0 self-center transition-colors group-hover:underline"
                 >
                   <span className="hidden sm:inline">View</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -101,10 +100,12 @@ const RecentActivity = ({ activities = [] }) => {
         </div>
       ) : (
         <div className="py-10 text-center space-y-2">
-          <Clock className="w-8 h-8 text-slate-300 mx-auto" />
-          <p className="text-xs font-semibold text-slate-700">No activity recorded yet</p>
-          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-            Upload your resume or run a job match to begin your activity timeline.
+          <div className="w-10 h-10 rounded-full bg-brand-bg text-brand-muted flex items-center justify-center mx-auto">
+            <Clock className="w-5 h-5" />
+          </div>
+          <p className="text-xs font-heading font-semibold text-brand-charcoal">No Activities Recorded Yet</p>
+          <p className="text-[11px] text-brand-muted max-w-xs mx-auto">
+            Your career activities across resume analysis, job matching, and mock interviews will appear chronologically here.
           </p>
         </div>
       )}

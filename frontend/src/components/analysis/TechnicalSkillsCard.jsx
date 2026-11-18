@@ -8,7 +8,6 @@ import {
   Database,
   Terminal,
   Cpu,
-  HelpCircle,
 } from 'lucide-react';
 import Card from '../common/Card';
 
@@ -25,18 +24,18 @@ const getPriorityBadge = (priority) => {
   if (norm === 'high') {
     return {
       label: 'High Priority',
-      className: 'bg-red-50 text-red-700 border-red-200 font-semibold',
+      className: 'bg-red-50 text-brand-danger border-red-200 font-semibold',
     };
   }
   if (norm === 'low') {
     return {
       label: 'Low Priority',
-      className: 'bg-slate-100 text-slate-700 border-slate-200 font-medium',
+      className: 'bg-brand-bg text-brand-muted border-brand-border font-medium',
     };
   }
   return {
     label: 'Medium Priority',
-    className: 'bg-amber-50 text-amber-700 border-amber-200 font-medium',
+    className: 'bg-amber-50 text-amber-800 border-amber-200 font-medium',
   };
 };
 
@@ -49,40 +48,40 @@ const TechnicalSkillsCard = ({ technicalSkillsAnalysis = {}, missingSkills = [] 
   } = technicalSkillsAnalysis;
 
   return (
-    <Card className="border border-slate-200/90 shadow-sm space-y-6">
+    <Card className="border-brand-border space-y-6">
       {/* Header with Relevance Score */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-brand-border/70 gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-brand-forestLight text-brand-primary flex items-center justify-center flex-shrink-0 shadow-soft-xs">
             <Cpu className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
               Technical Skills & Role Relevance
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-brand-muted">
               Categorized skills matched against industry benchmarks for this role
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="text-xs text-slate-500 font-medium">Relevance Rating:</span>
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="text-xs text-brand-muted font-medium">Relevance Rating:</span>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-heading font-bold bg-brand-forestLight text-brand-primary border border-brand-sageBorder/60">
             {roleRelevanceScore}% Match
           </span>
         </div>
       </div>
 
       {summary && (
-        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs sm:text-sm text-slate-700 leading-relaxed">
+        <div className="p-3.5 rounded-xl bg-brand-bg border border-brand-border text-xs sm:text-sm text-brand-slate leading-relaxed">
           {summary}
         </div>
       )}
 
       {/* Categorized Existing Skills */}
       <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+        <h4 className="text-xs font-heading font-bold uppercase tracking-wider text-brand-muted mb-3">
           Identified Skills in Resume ({existingSkills.length})
         </h4>
 
@@ -95,79 +94,90 @@ const TechnicalSkillsCard = ({ technicalSkillsAnalysis = {}, missingSkills = [] 
 
               return (
                 <div key={cat.key} className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                    <Icon className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1.5 text-xs font-heading font-semibold text-brand-charcoal">
+                    <Icon className="w-3.5 h-3.5 text-brand-muted" />
                     <span>{cat.label}</span>
-                    <span className="text-[10px] text-slate-400 font-normal">
+                    <span className="text-[10px] text-brand-muted font-normal">
                       ({list.length})
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 pl-5">
-                    {list.map((skill, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200 hover:border-slate-300 transition-colors"
-                      >
-                        <Check className="w-3 h-3 text-emerald-600" />
-                        {skill}
-                      </span>
-                    ))}
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {list.map((skill, sIdx) => {
+                      const skillLabel =
+                        typeof skill === 'object' && skill !== null
+                          ? skill.name || skill.skill || skill.title || ''
+                          : String(skill || '');
+                      return (
+                        <span
+                          key={sIdx}
+                          className="inline-flex items-center gap-1 text-xs font-heading font-medium px-2.5 py-1 rounded-xl bg-brand-forestLight text-brand-primary border border-brand-sageBorder/60 shadow-soft-xs"
+                        >
+                          <Check className="w-3 h-3 text-brand-primary" />
+                          {skillLabel}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-xs text-slate-500 italic">
-            No technical skills were parsed from the resume. Make sure skills are clearly listed under a Skills section.
+          <p className="text-xs text-brand-muted italic py-2">
+            No technical skills detected in the parsed resume.
           </p>
         )}
       </div>
 
       {/* Missing Skills Section */}
-      <div className="pt-4 border-t border-slate-100">
+      <div className="pt-4 border-t border-brand-border/70">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-amber-600" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              High-Value Missing Skills ({missingSkills.length})
+            <h4 className="text-xs font-heading font-bold uppercase tracking-wider text-brand-charcoal">
+              Recommended Skills to Acquire ({missingSkills.length})
             </h4>
           </div>
-          <span className="text-[11px] text-slate-400">
-            Recommended additions to strengthen ATS & interview readiness
+          <span className="text-[11px] text-brand-muted">
+            High impact on ATS rankings
           </span>
         </div>
 
         {missingSkills.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {missingSkills.map((item, idx) => {
-              const badge = getPriorityBadge(item.priority);
+            {missingSkills.map((missing, idx) => {
+              const badge = getPriorityBadge(missing.priority);
               return (
                 <div
                   key={idx}
-                  className="p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-2xs space-y-1.5"
+                  className="p-3 rounded-xl bg-brand-bg border border-brand-border/70 hover:border-brand-borderDark transition-colors space-y-1"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-900">
-                      {item.skill}
+                    <span className="text-xs font-heading font-bold text-brand-charcoal">
+                      {typeof missing === 'object' && missing !== null
+                        ? missing.skill || missing.name || missing.title || ''
+                        : String(missing || '')}
                     </span>
                     <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full border ${badge.className}`}
+                      className={`text-[10px] font-heading px-2 py-0.5 rounded-full border ${badge.className}`}
                     >
                       {badge.label}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-snug">
-                    {item.reason}
-                  </p>
+                  {missing.reason && (
+                    <p className="text-[11px] text-brand-muted leading-relaxed">
+                      {missing.reason}
+                    </p>
+                  )}
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium">
-            Great job! No major standard role skills appear missing from your profile.
-          </div>
+          <p className="text-xs text-brand-primary italic py-2">
+            Great news! No critical missing technical skills identified for this role benchmark.
+          </p>
         )}
       </div>
     </Card>

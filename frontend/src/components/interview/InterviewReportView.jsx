@@ -50,28 +50,28 @@ const InterviewReportView = ({ report }) => {
   const getLabelBadge = (label) => {
     switch (label) {
       case 'Excellent':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        return 'bg-brand-forestLight text-brand-primary border-brand-sageBorder/60';
       case 'Good':
-        return 'bg-sky-100 text-sky-800 border-sky-300';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
       case 'Average':
-        return 'bg-amber-100 text-amber-800 border-amber-300';
+        return 'bg-amber-50 text-amber-800 border-amber-200';
       default:
-        return 'bg-rose-100 text-rose-800 border-rose-300';
+        return 'bg-red-50 text-brand-danger border-red-200';
     }
   };
 
   const getScoreColor = (score) => {
-    if (score >= 85) return 'text-emerald-600';
-    if (score >= 70) return 'text-sky-600';
-    if (score >= 50) return 'text-amber-600';
-    return 'text-rose-600';
+    if (score >= 85) return 'text-brand-primary';
+    if (score >= 70) return 'text-emerald-700';
+    if (score >= 50) return 'text-amber-700';
+    return 'text-brand-danger';
   };
 
   const getProgressColor = (score) => {
-    if (score >= 85) return 'bg-emerald-500';
-    if (score >= 70) return 'bg-sky-500';
+    if (score >= 85) return 'bg-brand-primary';
+    if (score >= 70) return 'bg-emerald-600';
     if (score >= 50) return 'bg-amber-500';
-    return 'bg-rose-500';
+    return 'bg-brand-danger';
   };
 
   const formatDate = (isoString) => {
@@ -97,373 +97,274 @@ const InterviewReportView = ({ report }) => {
     } else if (typeof performanceBreakdown === 'object') {
       entries = Object.entries(performanceBreakdown);
     }
-    return entries
-      .filter(([_, val]) => val !== null && val !== undefined && !isNaN(val))
-      .map(([key, val]) => [key, Math.round(Number(val))]);
+    return entries;
   };
 
   const breakdownEntries = getBreakdownEntries();
 
-  const formatCriterionLabel = (key) => {
-    const labels = {
-      technicalAccuracy: 'Technical Accuracy',
-      technical_accuracy: 'Technical Accuracy',
-      relevance: 'Relevance',
-      completeness: 'Completeness',
-      clarity: 'Clarity',
-      structureAndCommunication: 'Structure & Communication',
-      structure_and_communication: 'Structure & Communication',
-      examplesAndSpecificity: 'Examples & Specificity',
-      examples_and_specificity: 'Examples & Specificity',
-    };
-    return labels[key] || key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
+  const toggleQuestionAccordion = (id) => {
+    setExpandedQuestion((prev) => (prev === id ? null : id));
   };
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* SECTION 1: Top Hero Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-brand-navy to-slate-800 rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sky-300 text-xs font-medium">
-            <Award className="w-3.5 h-3.5" />
-            Phase 5 Mock Interview Performance Report
+    <div className="space-y-8 animate-in fade-in-50 duration-200">
+      {/* Top Banner */}
+      <div className="bg-brand-charcoal rounded-3xl p-7 sm:p-9 text-white shadow-soft-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-brand-forestLight text-xs font-heading font-semibold">
+            <Award className="w-3.5 h-3.5 text-brand-forestLight" />
+            <span>Comprehensive Evaluation Report</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Interview Performance: {displayRole}
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight text-white">
+            Interview Performance Report
           </h1>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300">
-            <span className="flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-sky-400" />
-              {interviewType}
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5">
-              <Compass className="w-3.5 h-3.5 text-sky-400" />
-              Difficulty: <strong className="text-white">{difficulty}</strong>
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-sky-400" />
-              {formatDate(completedAt || createdAt)}
-            </span>
-          </div>
+          <p className="text-[#B2BCB2] text-xs sm:text-sm leading-relaxed font-sans">
+            Detailed assessment for <strong className="text-white">{displayRole}</strong> ({interviewType}, {difficulty} level). Completed on {formatDate(completedAt || createdAt)}.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-start md:self-auto flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            icon={RotateCcw}
+            onClick={() => navigate('/mock-interview')}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-heading font-medium"
+          >
+            Practice Again
+          </Button>
           <Button
             variant="outline"
             size="sm"
             icon={History}
-            className="bg-white/10 hover:bg-white/20 text-white border-white/20"
             onClick={() => navigate('/interview-history')}
+            className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-heading font-medium"
           >
-            All Interviews
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={RotateCcw}
-            onClick={() => navigate('/mock-interview')}
-          >
-            New Interview
+            All Sessions
           </Button>
         </div>
       </div>
 
-      {/* SECTION 2 & 3: Overall Performance & Rubric Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Overall Score Card */}
-        <Card className="flex flex-col items-center justify-center p-6 text-center space-y-4 border-slate-200">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+      {/* Main Score & Rubric Dimensions */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Overall Score Dial */}
+        <Card className="lg:col-span-5 border-brand-border p-6 sm:p-8 flex flex-col items-center justify-center text-center space-y-4">
+          <span className="text-xs font-heading font-bold text-brand-muted uppercase tracking-wider">
             Overall Interview Score
           </span>
-          <div className="relative flex items-center justify-center w-28 h-28 rounded-full border-4 border-slate-100 bg-slate-50 shadow-inner">
+
+          <div className="relative flex items-center justify-center w-36 h-36 rounded-full border-4 border-brand-border bg-brand-bg shadow-soft-xs">
             <div className="text-center">
-              <span className={`text-4xl font-black ${getScoreColor(overallScore)}`}>
+              <span className={`text-5xl font-heading font-black ${getScoreColor(overallScore)}`}>
                 {overallScore}
               </span>
-              <span className="block text-[11px] font-semibold text-slate-400">/100</span>
+              <span className="text-xs text-brand-muted block font-heading font-bold -mt-1">
+                out of 100
+              </span>
             </div>
           </div>
-          <div>
+
+          <div className="space-y-1">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getLabelBadge(
+              className={`inline-block px-3 py-1 rounded-full text-xs font-heading font-bold border ${getLabelBadge(
                 performanceLabel
               )}`}
             >
-              <Award className="w-3.5 h-3.5" />
               {performanceLabel}
             </span>
-          </div>
-          <div className="w-full pt-3 border-t border-slate-100 grid grid-cols-3 text-center text-xs">
-            <div>
-              <span className="text-slate-400 block">Total</span>
-              <strong className="text-slate-700 font-bold">{totalQuestions}</strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block">Answered</span>
-              <strong className="text-emerald-600 font-bold">{answeredCount}</strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block">Completion</span>
-              <strong className="text-sky-600 font-bold">{completionPercentage}%</strong>
-            </div>
+            <p className="text-xs text-brand-muted max-w-xs pt-1">
+              Answered {answeredCount} of {totalQuestions} questions successfully
+            </p>
           </div>
         </Card>
 
-        {/* Performance Breakdown across Criteria */}
-        <Card className="lg:col-span-2 p-6 border-slate-200 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-brand-primary" />
-                Performance Breakdown
-              </h3>
-              <p className="text-xs text-slate-500">
-                Average score achieved across evaluated rubric dimensions
-              </p>
-            </div>
+        {/* Dimension Breakdown Meters */}
+        <Card className="lg:col-span-7 border-brand-border p-6 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-brand-border/70">
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
+              Rubric Dimension Breakdown
+            </h3>
+            <span className="text-xs text-brand-muted font-heading">
+              Average Across Questions
+            </span>
           </div>
 
           {breakdownEntries.length > 0 ? (
-            <div className="space-y-3 pt-2">
-              {breakdownEntries.map(([key, val]) => (
-                <div key={key} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-medium text-slate-700">
-                    <span className="font-semibold text-slate-800">
-                      {formatCriterionLabel(key)}
+            <div className="space-y-3.5 pt-1">
+              {breakdownEntries.map(([dim, val]) => (
+                <div key={dim} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-heading font-semibold text-brand-charcoal capitalize">
+                      {dim.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}
                     </span>
-                    <span className="font-bold text-slate-900">{val}/100</span>
+                    <span className="font-mono font-bold text-brand-charcoal">{val}%</span>
                   </div>
-                  <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-brand-bg border border-brand-border/60 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${getProgressColor(
-                        val
-                      )}`}
-                      style={{ width: `${Math.min(100, Math.max(0, val))}%` }}
+                      className={`h-full rounded-full transition-all duration-700 ${getProgressColor(val)}`}
+                      style={{ width: `${Math.max(5, val)}%` }}
                     />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="py-8 text-center space-y-2">
-              <Layers className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-medium text-slate-600">
-                No evaluated rubric breakdown available.
-              </p>
-              <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-                Rubric dimensions (such as Technical Accuracy, Relevance, Completeness, and Clarity) will populate here once questions are answered and evaluated.
-              </p>
-            </div>
+            <p className="text-xs text-brand-muted italic py-6 text-center">
+              Dimension breakdown will populate as more questions are evaluated.
+            </p>
           )}
         </Card>
       </div>
 
-      {/* SECTION 4: Strengths & Weaknesses Side-by-Side */}
+      {/* Strengths & Improvement Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Key Strengths */}
-        <Card className="p-6 border-emerald-200/80 bg-emerald-50/20 space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            Key Strengths Identified
-          </h3>
-          <ul className="space-y-2 text-xs text-slate-700">
-            {(summaryFeedback.strengths || []).length > 0 ? (
-              summaryFeedback.strengths.map((str, idx) => (
+        <Card className="border-brand-border p-6 space-y-3">
+          <div className="flex items-center gap-2 pb-3 border-b border-brand-border/70 text-brand-primary">
+            <CheckCircle2 className="w-4 h-4 text-brand-primary" />
+            <h3 className="text-sm font-heading font-bold text-brand-charcoal">
+              Consolidated Strengths
+            </h3>
+          </div>
+          {summaryFeedback?.strengths?.length > 0 ? (
+            <ul className="space-y-2 text-xs text-brand-slate leading-relaxed">
+              {summaryFeedback.strengths.map((str, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="text-emerald-500 font-bold">•</span>
+                  <span className="text-brand-primary font-bold">•</span>
                   <span>{str}</span>
                 </li>
-              ))
-            ) : (
-              <li className="text-slate-500 italic">No specific strengths recorded.</li>
-            )}
-          </ul>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-brand-muted italic">Clear baseline communication maintained.</p>
+          )}
         </Card>
 
-        {/* Areas for Improvement */}
-        <Card className="p-6 border-amber-200/80 bg-amber-50/20 space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-amber-800 flex items-center gap-2">
+        <Card className="border-brand-border p-6 space-y-3">
+          <div className="flex items-center gap-2 pb-3 border-b border-brand-border/70 text-amber-800">
             <AlertTriangle className="w-4 h-4 text-amber-600" />
-            Areas for Technical & Structural Improvement
-          </h3>
-          <ul className="space-y-2 text-xs text-slate-700">
-            {(summaryFeedback.weaknesses || []).length > 0 ? (
-              summaryFeedback.weaknesses.map((wk, idx) => (
+            <h3 className="text-sm font-heading font-bold text-brand-charcoal">
+              Priority Improvement Areas
+            </h3>
+          </div>
+          {summaryFeedback?.areasForImprovement?.length > 0 ? (
+            <ul className="space-y-2 text-xs text-brand-slate leading-relaxed">
+              {summaryFeedback.areasForImprovement.map((area, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="text-amber-500 font-bold">•</span>
-                  <span>{wk}</span>
+                  <span className="text-amber-600 font-bold">•</span>
+                  <span>{area}</span>
                 </li>
-              ))
-            ) : (
-              <li className="text-slate-500 italic">No specific weaknesses recorded.</li>
-            )}
-          </ul>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-brand-muted italic">No critical deficiencies identified.</p>
+          )}
         </Card>
       </div>
 
-      {/* SECTION 5: Interview Readiness Assessment */}
-      <Card className="p-6 border-slate-200 bg-gradient-to-br from-slate-50 to-white space-y-3">
-        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-brand-primary" />
-          CareerLens AI Readiness Assessment
-        </h3>
-        <p className="text-sm text-slate-700 leading-relaxed">
-          {summaryFeedback.readinessAssessment ||
-            'Review the individual question feedback and sample answers below to reinforce your interview readiness.'}
-        </p>
-        <p className="text-xs text-slate-400 italic">
-          Disclaimer: This mock evaluation evaluates conceptual breadth and communication clarity. It is designed for preparation and learning, not as an official hiring guarantee.
-        </p>
-      </Card>
-
-      {/* SECTION 6: Question-by-Question Detailed Analysis */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-brand-primary" />
-            Question-by-Question Detailed Analysis
-          </h3>
-          <span className="text-xs text-slate-500">
-            Click on any question to view candidate answer, score, and benchmark
+      {/* Question-by-Question Review Accordion */}
+      <Card className="border-brand-border p-6 sm:p-8 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-brand-border/70">
+          <div>
+            <h3 className="text-base font-heading font-bold text-brand-charcoal">
+              Detailed Question-by-Question Review
+            </h3>
+            <p className="text-xs text-brand-muted">
+              Inspect your answers, rubric scores, missing concepts, and ideal benchmark responses
+            </p>
+          </div>
+          <span className="text-xs font-heading font-semibold text-brand-muted">
+            {answeredQuestions.length} Evaluated
           </span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 pt-2">
           {questions.map((q, idx) => {
-            const isExpanded = expandedQuestion === idx;
+            const isExpanded = expandedQuestion === q._id;
             const evalData = q.evaluation;
-            const qScore = evalData?.overallScore ?? evalData?.overall_score ?? 0;
+            const score = evalData?.overallScore || 0;
 
             return (
-              <Card
-                key={idx}
-                className="border-slate-200 p-0 overflow-hidden transition-all duration-200"
+              <div
+                key={q._id || idx}
+                className="rounded-2xl border border-brand-border bg-white overflow-hidden shadow-soft-xs transition-all duration-150"
               >
-                {/* Accordion Header */}
+                {/* Accordion Trigger */}
                 <button
-                  onClick={() => setExpandedQuestion(isExpanded ? null : idx)}
-                  className="w-full p-4 sm:p-5 flex items-start justify-between text-left gap-4 hover:bg-slate-50/70 transition-colors"
+                  type="button"
+                  onClick={() => toggleQuestionAccordion(q._id)}
+                  className="w-full p-4 text-left flex items-start justify-between gap-4 hover:bg-brand-bg transition-colors"
                 >
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400">
-                        Q{idx + 1}
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-heading font-bold text-brand-muted uppercase tracking-wider">
+                        Question {idx + 1}
                       </span>
-                      <span
-                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                          q.category === 'technical'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-purple-100 text-purple-800'
-                        }`}
-                      >
-                        {q.category}
-                      </span>
-                      <span className="text-xs text-slate-500 font-medium">
-                        {q.topic}
+                      <span className="text-brand-muted">•</span>
+                      <span className="text-[11px] font-heading font-medium text-brand-primary">
+                        {q.category || 'Technical'}
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 leading-snug">
+                    <h4 className="text-sm font-heading font-bold text-brand-charcoal truncate max-w-xl">
                       {q.questionText}
-                    </p>
+                    </h4>
                   </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0 self-center">
-                    {q.status === 'answered' ? (
-                      <span
-                        className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                          qScore >= 70
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : qScore >= 50
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}
-                      >
-                        {qScore}/100
-                      </span>
-                    ) : (
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 font-medium">
-                        Skipped
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {evalData && (
+                      <span className={`text-xs font-heading font-bold ${getScoreColor(score)}`}>
+                        {score}/100
                       </span>
                     )}
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-slate-400" />
+                      <ChevronUp className="w-4 h-4 text-brand-muted" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                      <ChevronDown className="w-4 h-4 text-brand-muted" />
                     )}
                   </div>
                 </button>
 
-                {/* Accordion Body */}
+                {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="px-5 pb-5 pt-2 border-t border-slate-100 space-y-4 bg-slate-50/40">
-                    {/* Candidate Answer */}
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        Your Submitted Answer
+                  <div className="p-5 border-t border-brand-border/70 bg-brand-bg space-y-4 text-xs leading-relaxed animate-in fade-in-50">
+                    {/* Full Question */}
+                    <div>
+                      <span className="font-heading font-bold text-brand-charcoal block mb-1">
+                        Question Prompt:
                       </span>
-                      <div className="p-3.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed font-mono whitespace-pre-wrap">
-                        {q.answer || (
-                          <span className="text-slate-400 italic font-sans">
-                            No answer submitted for this question.
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-brand-slate bg-white p-3 rounded-xl border border-brand-border">
+                        {q.questionText}
+                      </p>
                     </div>
 
-                    {/* Evaluation Details */}
-                    {evalData && (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                          {evalData.strengths?.length > 0 && (
-                            <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                              <span className="font-bold text-emerald-800 block mb-1">
-                                Strengths:
-                              </span>
-                              <ul className="space-y-1 text-slate-700">
-                                {evalData.strengths.map((s, i) => (
-                                  <li key={i}>• {s}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                    {/* Candidate's Answer */}
+                    <div>
+                      <span className="font-heading font-bold text-brand-charcoal block mb-1">
+                        Your Submitted Response:
+                      </span>
+                      <p className="text-brand-slate bg-white p-3 rounded-xl border border-brand-border whitespace-pre-wrap">
+                        {q.answer || 'No answer submitted'}
+                      </p>
+                    </div>
 
-                          {evalData.weaknesses?.length > 0 && (
-                            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                              <span className="font-bold text-amber-800 block mb-1">
-                                Missing Concepts / Improvements:
-                              </span>
-                              <ul className="space-y-1 text-slate-700">
-                                {evalData.weaknesses.map((w, i) => (
-                                  <li key={i}>• {w}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Benchmark Sample Answer */}
-                        {evalData.improvedSampleAnswer && (
-                          <div className="space-y-1.5">
-                            <span className="text-xs font-bold text-sky-800 uppercase tracking-wider flex items-center gap-1">
-                              <BookOpen className="w-3.5 h-3.5 text-sky-600" />
-                              Benchmark Sample Answer
-                            </span>
-                            <div className="p-3.5 rounded-lg bg-slate-900 text-slate-200 text-xs font-mono leading-relaxed whitespace-pre-wrap">
-                              {evalData.improvedSampleAnswer}
-                            </div>
-                          </div>
-                        )}
+                    {/* Benchmark Sample Answer */}
+                    {evalData?.improvedSampleAnswer && (
+                      <div className="p-4 rounded-xl bg-brand-forestLight/50 border border-brand-sageBorder/50 space-y-1.5">
+                        <span className="font-heading font-bold text-brand-primary flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Ideal Benchmark Response:
+                        </span>
+                        <p className="text-brand-charcoal whitespace-pre-wrap">
+                          {evalData.improvedSampleAnswer}
+                        </p>
                       </div>
                     )}
                   </div>
                 )}
-              </Card>
+              </div>
             );
           })}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

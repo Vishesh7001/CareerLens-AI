@@ -83,6 +83,7 @@ const learningRoadmapSchema = new mongoose.Schema(
 );
 
 learningRoadmapSchema.index({ user: 1, job: 1 });
+learningRoadmapSchema.index({ user: 1, targetRole: 1 });
 learningRoadmapSchema.index({ user: 1, createdAt: -1 });
 
 const LearningRoadmap = mongoose.model('LearningRoadmap', learningRoadmapSchema);

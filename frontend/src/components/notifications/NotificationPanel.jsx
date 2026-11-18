@@ -4,7 +4,6 @@ import {
   Bell,
   CheckCheck,
   Trash2,
-  ExternalLink,
   Sparkles,
   FileCheck2,
   Briefcase,
@@ -42,7 +41,6 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
   useEffect(() => {
     fetchNotifications();
 
-    // Click outside handler
     const handleClickOutside = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
         onClose();
@@ -110,19 +108,19 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
   const getIcon = (type) => {
     switch (type) {
       case 'resume_upload':
-        return <FileCheck2 className="w-4 h-4 text-emerald-600" />;
+        return <FileCheck2 className="w-4 h-4 text-brand-primary" />;
       case 'resume_analysis':
-        return <Sparkles className="w-4 h-4 text-sky-600" />;
+        return <Sparkles className="w-4 h-4 text-brand-sage" />;
       case 'job_match':
-        return <Briefcase className="w-4 h-4 text-indigo-600" />;
+        return <Briefcase className="w-4 h-4 text-brand-info" />;
       case 'roadmap_milestone':
-        return <Map className="w-4 h-4 text-teal-600" />;
+        return <Map className="w-4 h-4 text-brand-primary" />;
       case 'interview_completed':
-        return <MessageSquareCode className="w-4 h-4 text-purple-600" />;
+        return <MessageSquareCode className="w-4 h-4 text-brand-charcoal" />;
       case 'readiness_updated':
-        return <Award className="w-4 h-4 text-amber-600" />;
+        return <Award className="w-4 h-4 text-brand-warning" />;
       default:
-        return <Bell className="w-4 h-4 text-slate-500" />;
+        return <Bell className="w-4 h-4 text-brand-muted" />;
     }
   };
 
@@ -146,13 +144,13 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150"
+      className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-soft-lg border border-brand-border z-50 overflow-hidden animate-in fade-in-50 duration-150"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
+      <div className="flex items-center justify-between px-4 py-3 bg-brand-bg border-b border-brand-border/70">
         <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 text-slate-700" />
-          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+          <Bell className="w-4 h-4 text-brand-charcoal" />
+          <h4 className="text-xs font-heading font-bold text-brand-charcoal uppercase tracking-wider">
             Notifications
           </h4>
         </div>
@@ -161,7 +159,7 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
             <button
               type="button"
               onClick={handleMarkAllAsRead}
-              className="text-[11px] font-semibold text-brand-primary hover:underline flex items-center gap-1"
+              className="text-[11px] font-heading font-semibold text-brand-primary hover:underline flex items-center gap-1"
             >
               <CheckCheck className="w-3.5 h-3.5" />
               <span>Mark all read</span>
@@ -170,7 +168,7 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+            className="text-brand-muted hover:text-brand-charcoal p-1 rounded-md transition-colors"
             aria-label="Close"
           >
             <X className="w-3.5 h-3.5" />
@@ -179,34 +177,34 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
       </div>
 
       {/* List */}
-      <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
+      <div className="max-h-[380px] overflow-y-auto divide-y divide-brand-border/50">
         {isLoading ? (
-          <div className="py-8 text-center text-xs text-slate-400">Loading notifications...</div>
+          <div className="py-8 text-center text-xs text-brand-muted">Loading notifications...</div>
         ) : notifications.length > 0 ? (
           notifications.map((n) => (
             <div
               key={n._id}
               onClick={() => handleClickItem(n)}
-              className={`p-3.5 hover:bg-slate-50 transition-colors cursor-pointer flex items-start gap-3 relative ${
-                !n.isRead ? 'bg-sky-50/30' : ''
+              className={`p-3.5 hover:bg-brand-bg transition-colors cursor-pointer flex items-start gap-3 relative group ${
+                !n.isRead ? 'bg-brand-forestLight/40' : ''
               }`}
             >
-              <div className="p-2 rounded-xl bg-slate-100 flex-shrink-0 mt-0.5">
+              <div className="p-2 rounded-xl bg-white border border-brand-border/60 flex-shrink-0 mt-0.5 shadow-soft-xs">
                 {getIcon(n.type)}
               </div>
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-start justify-between gap-1">
-                  <span className={`text-xs font-bold ${!n.isRead ? 'text-slate-900' : 'text-slate-700'}`}>
+                  <span className={`text-xs font-heading font-bold ${!n.isRead ? 'text-brand-charcoal' : 'text-brand-slate'}`}>
                     {n.title}
                   </span>
                   {!n.isRead && (
                     <span className="w-2 h-2 rounded-full bg-brand-primary flex-shrink-0 mt-1" />
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                <p className="text-[11px] text-brand-muted line-clamp-2 leading-relaxed">
                   {n.message}
                 </p>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                <div className="flex items-center justify-between text-[10px] text-brand-muted pt-0.5">
                   <span className="flex items-center gap-1">
                     <Clock className="w-2.5 h-2.5" />
                     {formatDate(n.createdAt)}
@@ -214,10 +212,10 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
                   <button
                     type="button"
                     onClick={(e) => handleDelete(e, n._id)}
-                    className="opacity-0 group-hover:opacity-100 hover:text-rose-600 p-0.5 rounded transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 hover:text-brand-danger p-0.5 rounded transition-opacity"
                     title="Delete notification"
                   >
-                    <Trash2 className="w-3 h-3 text-slate-400 hover:text-rose-600" />
+                    <Trash2 className="w-3 h-3 text-brand-muted hover:text-brand-danger" />
                   </button>
                 </div>
               </div>
@@ -225,11 +223,11 @@ const NotificationPanel = ({ isOpen, onClose, onCountChange }) => {
           ))
         ) : (
           <div className="py-12 px-4 text-center space-y-2">
-            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+            <div className="w-10 h-10 rounded-full bg-brand-bg text-brand-muted flex items-center justify-center mx-auto">
               <Bell className="w-5 h-5" />
             </div>
-            <p className="text-xs font-semibold text-slate-700">No notifications yet</p>
-            <p className="text-[11px] text-slate-400 max-w-[200px] mx-auto">
+            <p className="text-xs font-heading font-semibold text-brand-charcoal">No notifications yet</p>
+            <p className="text-[11px] text-brand-muted max-w-[220px] mx-auto">
               You will receive updates when resumes are parsed, matches are generated, or interviews are completed.
             </p>
           </div>

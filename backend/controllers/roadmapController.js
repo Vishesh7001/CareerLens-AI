@@ -4,29 +4,19 @@ const JobDescription = require('../models/JobDescription');
 const Resume = require('../models/Resume');
 const { generateLearningRoadmap } = require('../services/aiService');
 
+const escapeRegex = (string) => {
+  if (!string || typeof string !== 'string') return '';
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 /**
- * @desc    Generate or update a personalized learning roadmap for a job
+ * @desc    Generate or update a personalized learning roadmap for a job or role
  * @route   POST /api/roadmaps
  * @access  Private
  */
 const createRoadmap = async (req, res, next) => {
   try {
-    const { jobId, durationWeeks = 4, missingSkills } = req.body;
-
-    if (!jobId || !mongoose.Types.ObjectId.isValid(jobId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid job identifier is required to generate a learning roadmap.',
-      });
-    }
-
-    const job = await JobDescription.findOne({ _id: jobId, user: req.user._id });
-    if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job description not found.',
-      });
-    }
+    const { jobId, targetRole, role, durationWeeks = 4, missingSkills } = req.body;
 
     const resume = await Resume.findOne({
       user: req.user._id,
@@ -40,33 +30,81 @@ const createRoadmap = async (req, res, next) => {
       });
     }
 
+    let job = null;
+    if (jobId) {
+      if (!mongoose.Types.ObjectId.isValid(jobId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Valid job identifier is required to generate a learning roadmap.',
+        });
+      }
+      job = await JobDescription.findOne({ _id: jobId, user: req.user._id });
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: 'Job description not found.',
+        });
+      }
+    }
+
+    const requestedRole = (targetRole || role || '').trim();
+
+    if (!job && !requestedRole) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid job identifier or target role is required to generate a learning roadmap.',
+      });
+    }
+
+    const effectiveRole = requestedRole || job?.jobTitle || 'Software Engineer';
+
+    // If job was not explicitly passed, see if user has an existing JobDescription for this role
+    if (!job && effectiveRole) {
+      job = await JobDescription.findOne({
+        user: req.user._id,
+        jobTitle: new RegExp(`^${escapeRegex(effectiveRole)}$`, 'i'),
+      });
+    }
+
+    const jobTitle = effectiveRole;
+    const companyName = job?.companyName || null;
+    const jobDescription =
+      job?.jobDescription ||
+      `Standard professional curriculum, industry qualifications, and core engineering requirements for ${jobTitle}.`;
+
     const aiResult = await generateLearningRoadmap(
       resume.parsedData,
-      job.jobDescription,
-      job.jobTitle,
-      job.companyName,
+      jobDescription,
+      jobTitle,
+      companyName,
       missingSkills || null,
       Number(durationWeeks) || 4
     );
 
-    // Upsert roadmap for this user + job
+    // Upsert isolation query:
+    // If effectiveRole is present, isolate by user + targetRole
+    // Otherwise isolate by user + job
+    const isolationQuery = {
+      user: req.user._id,
+      ...(effectiveRole
+        ? { targetRole: new RegExp(`^${escapeRegex(effectiveRole)}$`, 'i') }
+        : { job: job._id }),
+    };
+
     const roadmap = await LearningRoadmap.findOneAndUpdate(
-      {
-        user: req.user._id,
-        job: job._id,
-      },
+      isolationQuery,
       {
         user: req.user._id,
         resume: resume._id,
-        job: job._id,
-        title: aiResult.title,
-        targetRole: aiResult.targetRole,
-        companyName: aiResult.companyName,
-        summary: aiResult.summary,
-        totalWeeks: aiResult.totalWeeks,
-        items: aiResult.items,
+        job: job ? job._id : null,
+        title: aiResult.title || `Personalized Learning Roadmap for ${jobTitle}`,
+        targetRole: effectiveRole,
+        companyName: companyName,
+        summary: aiResult.summary || '',
+        totalWeeks: aiResult.totalWeeks || 4,
+        items: aiResult.items || [],
         progressPercentage: 0,
-        analysisProvider: aiResult.analysisProvider,
+        analysisProvider: aiResult.analysisProvider || 'rule-based-fallback',
       },
       { new: true, upsert: true, runValidators: true }
     );
@@ -82,21 +120,65 @@ const createRoadmap = async (req, res, next) => {
 };
 
 /**
- * @desc    Get all roadmaps for current user, or latest
+ * @desc    Get all roadmaps for current user, or filter by role
  * @route   GET /api/roadmaps
  * @access  Private
  */
 const getUserRoadmaps = async (req, res, next) => {
   try {
-    const roadmaps = await LearningRoadmap.find({
-      user: req.user._id,
-    }).sort({ createdAt: -1 });
+    const { role, targetRole } = req.query;
+    const filter = { user: req.user._id };
+
+    const requestedRole = (role || targetRole || '').trim();
+    if (requestedRole) {
+      filter.targetRole = new RegExp(`^${escapeRegex(requestedRole)}$`, 'i');
+    }
+
+    const roadmaps = await LearningRoadmap.find(filter).sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
       count: roadmaps.length,
       roadmaps,
       roadmap: roadmaps[0] || null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get roadmap by Target Role
+ * @route   GET /api/roadmaps/role/:role
+ * @access  Private
+ */
+const getRoadmapByRole = async (req, res, next) => {
+  try {
+    const { role } = req.params;
+
+    if (!role || !role.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid target role parameter is required.',
+      });
+    }
+
+    const cleanRole = role.trim();
+    const roadmap = await LearningRoadmap.findOne({
+      user: req.user._id,
+      targetRole: new RegExp(`^${escapeRegex(cleanRole)}$`, 'i'),
+    }).sort({ createdAt: -1 });
+
+    if (!roadmap) {
+      return res.status(404).json({
+        success: false,
+        message: `No learning roadmap found for role ${cleanRole}.`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      roadmap,
     });
   } catch (error) {
     next(error);
@@ -250,6 +332,7 @@ module.exports = {
   createRoadmap,
   getUserRoadmaps,
   getRoadmapById,
+  getRoadmapByRole,
   getRoadmapByJobId,
   updateRoadmapProgress,
 };

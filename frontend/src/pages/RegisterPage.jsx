@@ -6,7 +6,7 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Sparkles,
+  Target,
   AlertCircle,
   CheckCircle,
 } from 'lucide-react';
@@ -39,7 +39,6 @@ const RegisterPage = () => {
   const [serverError, setServerError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Real-time password strength
   const passwordStrength = checkPasswordStrength(formData.password);
 
   const handleChange = (e) => {
@@ -49,7 +48,6 @@ const RegisterPage = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
 
-    // Clear field-specific error as user types
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -100,174 +98,166 @@ const RegisterPage = () => {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
-        confirmPassword: formData.confirmPassword,
       });
 
-      // Redirect directly to dashboard upon successful registration
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setServerError(err.message || 'Registration failed. Please check your details and try again.');
+      setServerError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-brand-bg flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-brand-slate">
       {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-brand-navy flex items-center justify-center text-white shadow-sm">
-            <Sparkles className="w-5 h-5 text-sky-400" />
+        <Link to="/" className="inline-flex items-center gap-2.5 group">
+          <div className="w-10 h-10 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-soft-xs group-hover:bg-brand-primaryHover transition-colors">
+            <Target className="w-5 h-5 text-brand-forestLight" />
           </div>
-          <span className="text-2xl font-bold text-slate-900 tracking-tight">
-            CareerLens <span className="text-brand-primary">AI</span>
+          <span className="text-2xl font-heading font-bold text-brand-charcoal tracking-tight">
+            CareerLens <span className="text-brand-primary font-serif italic text-3xl font-normal">AI</span>
           </span>
         </Link>
-        <h2 className="mt-4 text-2xl font-bold text-slate-900 tracking-tight">
-          Create your account
+        <h2 className="mt-5 text-2xl sm:text-3xl font-heading font-bold text-brand-charcoal tracking-tight">
+          Create Your Workspace
         </h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Start your intelligent career journey in seconds
+        <p className="mt-1.5 text-sm text-brand-muted">
+          Start benchmarking your career potential with advanced AI
         </p>
       </div>
 
-      {/* Form Container */}
+      {/* Main Form Container */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <Card className="p-6 sm:p-8 border-slate-200">
+        <Card className="p-7 sm:p-9 shadow-soft-md border-brand-border">
           {serverError && (
-            <div className="mb-5 p-3.5 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-red-700">{serverError}</div>
+            <div className="mb-6 p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 flex items-start gap-3 text-brand-danger text-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="font-medium">{serverError}</div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name */}
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <Input
               label="Full Name"
               id="fullName"
               name="fullName"
               type="text"
-              placeholder="e.g. Sarah Jenkins"
+              autoComplete="name"
+              required
+              placeholder="e.g. Alex Morgan"
+              startIcon={User}
               value={formData.fullName}
               onChange={handleChange}
               error={errors.fullName}
-              startIcon={User}
-              required
-              autoComplete="name"
+              disabled={isSubmitting}
             />
 
-            {/* Email Address */}
             <Input
               label="Email Address"
               id="email"
               name="email"
               type="email"
-              placeholder="name@example.com"
+              autoComplete="email"
+              required
+              placeholder="alex@university.edu"
+              startIcon={Mail}
               value={formData.email}
               onChange={handleChange}
               error={errors.email}
-              startIcon={Mail}
-              required
-              autoComplete="email"
+              disabled={isSubmitting}
             />
 
-            {/* Password */}
             <div>
               <Input
                 label="Password"
                 id="password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
                 placeholder="At least 8 characters"
-                value={formData.password}
-                onChange={handleChange}
-                error={errors.password}
                 startIcon={Lock}
                 endIcon={showPassword ? EyeOff : Eye}
                 onEndIconClick={() => setShowPassword(!showPassword)}
-                required
-                autoComplete="new-password"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                disabled={isSubmitting}
               />
 
-              {/* Password strength meter */}
+              {/* Password Strength Visual Meter */}
               {formData.password && (
-                <div className="mt-2 space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Strength:</span>
-                    <span className="font-semibold text-slate-700">{passwordStrength.label}</span>
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex gap-1 h-1.5">
+                    {[1, 2, 3, 4].map((step) => {
+                      let bgColor = 'bg-brand-border';
+                      if (passwordStrength.score >= step) {
+                        if (passwordStrength.score <= 2) bgColor = 'bg-brand-warning';
+                        else bgColor = 'bg-brand-primary';
+                      }
+                      return (
+                        <div
+                          key={step}
+                          className={`flex-1 rounded-full ${bgColor} transition-colors duration-200`}
+                        />
+                      );
+                    })}
                   </div>
-                  <div className="grid grid-cols-4 gap-1.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        passwordStrength.score >= 1 ? passwordStrength.color : 'bg-transparent'
-                      }`}
-                    />
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        passwordStrength.score >= 2 ? passwordStrength.color : 'bg-transparent'
-                      }`}
-                    />
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        passwordStrength.score >= 3 ? passwordStrength.color : 'bg-transparent'
-                      }`}
-                    />
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        passwordStrength.score >= 4 ? passwordStrength.color : 'bg-transparent'
-                      }`}
-                    />
+                  <div className="flex justify-between items-center text-[11px] text-brand-muted">
+                    <span>Password strength:</span>
+                    <span className="font-heading font-semibold text-brand-charcoal">
+                      {passwordStrength.feedback || 'Too weak'}
+                    </span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Confirm Password */}
             <Input
               label="Confirm Password"
               id="confirmPassword"
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Repeat your password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              error={errors.confirmPassword}
+              autoComplete="new-password"
+              required
+              placeholder="Re-enter password"
               startIcon={Lock}
               endIcon={showConfirmPassword ? EyeOff : Eye}
               onEndIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              required
-              autoComplete="new-password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              error={errors.confirmPassword}
+              disabled={isSubmitting}
             />
 
-            {/* Terms and Conditions Checkbox */}
             <div className="pt-1">
-              <label className="flex items-start gap-2.5 cursor-pointer">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   name="agreeTerms"
                   checked={formData.agreeTerms}
                   onChange={handleChange}
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
+                  disabled={isSubmitting}
+                  className="mt-0.5 w-4 h-4 rounded text-brand-primary focus:ring-brand-primary/20 border-brand-border"
                 />
-                <span className="text-xs text-slate-600 leading-normal">
+                <span className="text-xs text-brand-slate leading-relaxed">
                   I agree to the{' '}
-                  <span className="text-brand-primary hover:underline font-medium">
+                  <span className="font-medium text-brand-primary underline cursor-not-allowed">
                     Terms of Service
                   </span>{' '}
                   and{' '}
-                  <span className="text-brand-primary hover:underline font-medium">
+                  <span className="font-medium text-brand-primary underline cursor-not-allowed">
                     Privacy Policy
                   </span>
                 </span>
               </label>
               {errors.agreeTerms && (
-                <p className="mt-1 text-xs text-red-600">{errors.agreeTerms}</p>
+                <p className="mt-1 text-xs text-brand-danger">{errors.agreeTerms}</p>
               )}
             </div>
 
-            {/* Submit Button */}
             <div className="pt-2">
               <Button
                 type="submit"
@@ -276,28 +266,28 @@ const RegisterPage = () => {
                 fullWidth
                 isLoading={isSubmitting}
               >
-                Create Account
+                Create Free Account
               </Button>
             </div>
           </form>
 
-          {/* Switch to Login */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-            <p className="text-sm text-slate-600">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-medium text-brand-primary hover:text-brand-primaryHover transition-colors"
-              >
-                Sign in
-              </Link>
-            </p>
+          <div className="mt-6 pt-5 border-t border-brand-border text-center text-xs sm:text-sm text-brand-muted">
+            Already registered?{' '}
+            <Link
+              to="/login"
+              className="font-heading font-semibold text-brand-primary hover:underline"
+            >
+              Sign In
+            </Link>
           </div>
         </Card>
+
+        <p className="mt-6 text-center text-xs text-brand-muted">
+          Your resume data is stored in isolated user directories with strict access control.
+        </p>
       </div>
     </div>
   );
 };
 
 export default RegisterPage;
-

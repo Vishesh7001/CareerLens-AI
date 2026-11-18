@@ -6,9 +6,15 @@
   body {
     @apply bg-brand-bg text-brand-slate font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom scrollbar for dashboard and app */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-brand-charcoal tracking-tight;
+  }
+
+  /* Custom subtle scrollbar matching warm ivory & slate theme */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -17,11 +23,10 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
+    background: #D5D8D1;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
+    background: #B5B9B0;
   }
 }
-

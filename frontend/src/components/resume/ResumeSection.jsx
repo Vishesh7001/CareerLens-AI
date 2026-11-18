@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   X,
-  Clock,
   HardDrive,
   Calendar,
   Sparkles,
@@ -35,7 +34,6 @@ const ResumeSection = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Load existing resume on mount
   useEffect(() => {
     let isMounted = true;
 
@@ -65,7 +63,6 @@ const ResumeSection = () => {
     };
   }, []);
 
-  // Upload handler with progress simulation & Axios tracking
   const handleUpload = async (file) => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -76,7 +73,6 @@ const ResumeSection = () => {
       const response = await resumeService.uploadResume(file, (progressEvent) => {
         if (progressEvent.total) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          // Keep up to 90% for upload, reserving 100% for backend parsing completion
           setUploadProgress(Math.min(percent, 90));
         }
       });
@@ -86,7 +82,6 @@ const ResumeSection = () => {
       setIsReplacing(false);
       setSuccessMessage(response.message || 'Resume uploaded and parsed successfully!');
 
-      // Auto-clear success message after 5 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
@@ -98,7 +93,6 @@ const ResumeSection = () => {
     }
   };
 
-  // Download handler
   const handleDownload = async () => {
     if (!resume) return;
     setIsDownloading(true);
@@ -113,7 +107,6 @@ const ResumeSection = () => {
     }
   };
 
-  // Delete handler
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     setError(null);
@@ -152,9 +145,9 @@ const ResumeSection = () => {
 
   if (isLoading) {
     return (
-      <Card className="border-slate-200 py-16 text-center space-y-3">
+      <Card className="border-brand-border py-16 text-center space-y-3">
         <LoadingSpinner size="lg" />
-        <p className="text-sm text-slate-500 font-medium">
+        <p className="text-sm text-brand-muted font-heading font-medium">
           Loading resume intelligence data...
         </p>
       </Card>
@@ -165,14 +158,14 @@ const ResumeSection = () => {
     <div id="resume-section" className="space-y-6">
       {/* Feedback Messages */}
       {successMessage && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-emerald-800 text-sm shadow-xs animate-in fade-in">
+        <div className="p-4 rounded-xl bg-brand-forestLight border border-brand-sageBorder/60 flex items-center justify-between text-brand-primary text-sm shadow-soft-xs animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-            <span className="font-medium">{successMessage}</span>
+            <CheckCircle2 className="w-5 h-5 text-brand-primary flex-shrink-0" />
+            <span className="font-heading font-semibold">{successMessage}</span>
           </div>
           <button
             onClick={() => setSuccessMessage(null)}
-            className="text-emerald-500 hover:text-emerald-700 p-1"
+            className="text-brand-primary/70 hover:text-brand-primary p-1"
             aria-label="Dismiss alert"
           >
             <X className="w-4 h-4" />
@@ -181,14 +174,14 @@ const ResumeSection = () => {
       )}
 
       {error && !isReplacing && !isUploading && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between text-red-800 text-sm shadow-xs">
+        <div className="p-4 rounded-xl bg-red-50/70 border border-brand-danger/30 flex items-center justify-between text-brand-danger text-sm shadow-soft-xs">
           <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <span className="font-medium">{error}</span>
+            <AlertTriangle className="w-5 h-5 text-brand-danger flex-shrink-0" />
+            <span className="font-heading font-semibold">{error}</span>
           </div>
           <button
             onClick={() => setError(null)}
-            className="text-red-500 hover:text-red-700 p-1"
+            className="text-brand-danger/70 hover:text-brand-danger p-1"
             aria-label="Dismiss alert"
           >
             <X className="w-4 h-4" />
@@ -211,33 +204,33 @@ const ResumeSection = () => {
       {resume && (
         <>
           {/* Active Resume Control Bar */}
-          <Card className="border-slate-200 bg-white">
+          <Card className="border-brand-border bg-white">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
               {/* File details */}
               <div className="flex items-start sm:items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-brand-forestLight text-brand-primary flex items-center justify-center flex-shrink-0 shadow-soft-xs">
                   <FileText className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-bold text-slate-900 truncate max-w-md" title={resume.originalFileName}>
+                    <h3 className="text-base font-heading font-bold text-brand-charcoal truncate max-w-md" title={resume.originalFileName}>
                       {resume.originalFileName}
                     </h3>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-heading font-bold px-2.5 py-0.5 rounded-full bg-brand-forestLight text-brand-primary border border-brand-sageBorder/60">
+                      <CheckCircle2 className="w-3 h-3 text-brand-primary" />
                       Parsing Completed
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
                     <span className="flex items-center gap-1 font-mono">
-                      <HardDrive className="w-3.5 h-3.5 text-slate-400" />
+                      <HardDrive className="w-3.5 h-3.5 text-brand-muted" />
                       {formatFileSize(resume.fileSize)}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <Calendar className="w-3.5 h-3.5 text-brand-muted" />
                       Uploaded {formatDate(resume.createdAt)}
                     </span>
-                    <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                    <span className="flex items-center gap-1 text-brand-primary font-medium">
                       <ShieldCheck className="w-3.5 h-3.5" />
                       Encrypted & Isolated
                     </span>
@@ -246,9 +239,9 @@ const ResumeSection = () => {
               </div>
 
               {/* Action buttons */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+              <div className="flex flex-wrap items-center gap-2.5 pt-3 lg:pt-0 border-t lg:border-t-0 border-brand-border/70">
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="sm"
                   icon={Sparkles}
                   onClick={() => navigate('/analysis')}
@@ -315,23 +308,23 @@ const ResumeSection = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-soft-lg border border-brand-border space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-red-100 text-brand-danger flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-base font-bold text-slate-900">
+                <h4 className="text-base font-heading font-bold text-brand-charcoal">
                   Delete Resume?
                 </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-brand-muted leading-relaxed">
                   This action will permanently delete your stored resume PDF from the server disk and erase all extracted parsed data. This action cannot be undone.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-brand-border/70">
               <Button
                 variant="outline"
                 size="sm"
