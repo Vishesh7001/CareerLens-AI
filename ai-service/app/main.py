@@ -22,18 +22,38 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
-# CORS configuration
-origins = [
+# CORS configuration supporting local development and production environments
+default_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5000",
     "http://127.0.0.1:5000",
-    
 ]
+
+origins = list(default_origins)
+
+
+def _add_origins_from_env(env_var_name: str) -> None:
+    val = os.getenv(env_var_name)
+    if val:
+        for url in val.split(","):
+            cleaned = url.strip().rstrip("/")
+            if cleaned and cleaned not in origins:
+                origins.append(cleaned)
+
+
+_add_origins_from_env("CLIENT_URL")
+_add_origins_from_env("BACKEND_URL")
+_add_origins_from_env("ALLOWED_ORIGINS")
+
+# Scoped preview origin regex for trusted frontend preview deployments (e.g. careerlens-frontend-*.vercel.app)
+frontend_project = os.getenv("FRONTEND_PROJECT_NAME", "careerlens-frontend").lower()
+preview_origin_regex = rf"^https:\/\/{frontend_project}(-[a-z0-9-]+)?\.vercel\.app$"
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=preview_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
