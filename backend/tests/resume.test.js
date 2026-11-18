@@ -10,7 +10,7 @@ const User = require('../models/User');
 const Resume = require('../models/Resume');
 const { generateToken } = require('../services/tokenService');
 const { createSimplePdf, createBlankPdf } = require('./helpers/pdfHelper');
-const { extractPhoneNumber, parseResumeText } = require('../services/resumeParserService');
+const { extractPhoneNumber, extractLocation, parseResumeText } = require('../services/resumeParserService');
 
 describe('CareerLens AI - Phase 2 Resume Upload & Parsing Suite', () => {
   let mongoServer;
@@ -797,5 +797,98 @@ describe('CareerLens AI - Phase 2 Resume Upload & Parsing Suite', () => {
     assert.strictEqual(extractPhoneNumber('12/05/2021'), null);
     assert.strictEqual(extractPhoneNumber(null), null);
     assert.strictEqual(extractPhoneNumber(''), null);
+  });
+
+  it('22. Extracts clean email and separates concatenated phone number (Bug 1 fix)', () => {
+    // 1. Vishesh Vijay case: 10-digit Indian phone glued directly to email
+    const parsed1 = parseResumeText('Vishesh Vijay\n7001101737visheshvijay3005@gmail.com\nEDUCATION: B.Tech 2024');
+    assert.strictEqual(parsed1.personalInfo.email, 'visheshvijay3005@gmail.com');
+    assert.strictEqual(parsed1.personalInfo.phone, '7001101737');
+
+    // 2. Concatenated with country code +91
+    const parsed2 = parseResumeText('+917001101737candidate@example.com\nSKILLS: React');
+    assert.strictEqual(parsed2.personalInfo.email, 'candidate@example.com');
+    assert.strictEqual(parsed2.personalInfo.phone, '+917001101737');
+
+    // 3. Concatenated North American number
+    const parsed3 = parseResumeText('+15554321098sarah.c@example.com');
+    assert.strictEqual(parsed3.personalInfo.email, 'sarah.c@example.com');
+    assert.strictEqual(parsed3.personalInfo.phone, '+15554321098');
+
+    // 4. Normal email and separate phone are unchanged
+    const parsed4 = parseResumeText('John Doe\njohn.doe@example.com\n+91 98765 43210');
+    assert.strictEqual(parsed4.personalInfo.email, 'john.doe@example.com');
+    assert.strictEqual(parsed4.personalInfo.phone, '+91 98765 43210');
+
+    // 5. extractPhoneNumber on concatenated string directly extracts the phone number
+    assert.strictEqual(extractPhoneNumber('7001101737visheshvijay3005@gmail.com'), '7001101737');
+  });
+
+  it('23. Never captures skills as location and extracts valid locations (Bug 2 fix)', () => {
+    // Negative cases: Skills, programming languages, education descriptions must NEVER be captured as location
+    const negativeCases = [
+      'Proficient in Python, Java',
+      'SKILLS: JavaScript, TypeScript, React, Node.js, Express, MongoDB',
+      'EXPERIENCE: Senior Software Engineer at Cyberdyne (2021 - Present) - Developed mission critical apps',
+      'University of California, Berkeley',
+      'Location: Proficient in Python, Java',
+      'Address: React, Node.js, MongoDB',
+      'Bachelor of Science in Computer Science, 2022',
+      'Full Stack Developer with 3 years of experience in Web Development',
+    ];
+
+    for (const text of negativeCases) {
+      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      const loc = extractLocation(text, lines);
+      assert.strictEqual(loc, null, `Expected null location for text: "${text}", but got "${loc}"`);
+    }
+
+    // Positive cases: Real city, state, country or remote must be accurately extracted
+    const positiveCases = [
+      { text: 'Sarah Connor\nsarah.connor@example.com | +1 555 432 1098 | Los Angeles, CA', expected: 'Los Angeles, CA' },
+      { text: 'Amit Kumar\namit.kumar@example.com | 9876543210 | New Delhi, India', expected: 'New Delhi, India' },
+      { text: 'Priya Patel\npriya.patel@example.com | +91-98765-43210 | Mumbai, Maharashtra', expected: 'Mumbai, Maharashtra' },
+      { text: 'Location: Bengaluru, Karnataka\nSKILLS: Python, Java', expected: 'Bengaluru, Karnataka' },
+      { text: 'Address: Flat 402, Sector 62, Noida, Uttar Pradesh', expected: 'Flat 402, Sector 62, Noida, Uttar Pradesh' },
+      { text: 'Candidate\nemail@example.com | Remote', expected: 'Remote' },
+      { text: 'John Doe | john@example.com | London, UK', expected: 'London, UK' },
+      { text: 'Jane Doe | jane@example.com | Toronto, Canada', expected: 'Toronto, Canada' },
+    ];
+
+    for (const { text, expected } of positiveCases) {
+      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      const loc = extractLocation(text, lines);
+      assert.strictEqual(loc, expected, `Expected "${expected}" for text: "${text}", but got "${loc}"`);
+    }
+  });
+
+  it('24. PDF upload end-to-end integration: cleans concatenated email and excludes skills from location (201)', async () => {
+    const pdfBuffer = createSimplePdf([
+      'Vishesh Vijay',
+      '7001101737visheshvijay3005@gmail.com',
+      'Proficient in Python, Java',
+      'SKILLS: Python, Java, Docker, AWS, Git',
+      'EDUCATION: Bachelor of Technology in Computer Science - 2024',
+      'PROJECTS: Career AI Portal - Python, React, MongoDB',
+    ]);
+
+    const fd = new FormData();
+    fd.append('resume', new Blob([pdfBuffer], { type: 'application/pdf' }), 'vishesh_resume.pdf');
+
+    const res = await fetch(`${baseUrl}/api/resumes/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token1}` },
+      body: fd,
+    });
+
+    const data = await res.json();
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(data.success, true);
+
+    const pi = data.resume.parsedData.personalInfo;
+    assert.strictEqual(pi.fullName, 'Vishesh Vijay');
+    assert.strictEqual(pi.email, 'visheshvijay3005@gmail.com');
+    assert.strictEqual(pi.phone, '7001101737');
+    assert.strictEqual(pi.location, null); // Skills 'Proficient in Python, Java' must NEVER become location!
   });
 });

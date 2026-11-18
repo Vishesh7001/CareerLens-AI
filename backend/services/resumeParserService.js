@@ -111,6 +111,121 @@ const SKILL_PATTERNS = {
   ],
 };
 
+const US_STATE_CODES = new Set([
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+  'DC', 'PR'
+]);
+
+const COUNTRY_AND_REGIONS = [
+  'India', 'United States', 'USA', 'UK', 'United Kingdom', 'Canada',
+  'Germany', 'Australia', 'Singapore', 'France', 'Japan', 'Netherlands',
+  'United Arab Emirates', 'UAE',
+  // Indian States & Union Territories
+  'Karnataka', 'Maharashtra', 'Tamil Nadu', 'Telangana', 'Delhi',
+  'Uttar Pradesh', 'Haryana', 'West Bengal', 'Gujarat', 'Rajasthan',
+  'Kerala', 'Punjab', 'Madhya Pradesh', 'Andhra Pradesh', 'Bihar',
+  'Odisha', 'Assam', 'Goa', 'Uttarakhand', 'Jharkhand'
+];
+
+const LOCATION_BLACKLIST_WORDS = [
+  'python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin', 'go', 'rust',
+  'react', 'angular', 'vue', 'node', 'express', 'django', 'flask', 'spring', 'html', 'css',
+  'sql', 'mysql', 'postgresql', 'postgres', 'mongodb', 'mongo', 'redis', 'oracle',
+  'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'cloud', 'git', 'linux', 'unix',
+  'proficient', 'experience', 'experienced', 'skills', 'skill', 'developer', 'engineer', 'architect',
+  'university', 'college', 'school', 'institute', 'bachelor', 'master', 'phd', 'degree', 'b.tech', 'm.tech', 'bca', 'mca',
+  'technologies', 'frameworks', 'tools', 'languages', 'full stack', 'frontend', 'backend', 'devops',
+  'machine learning', 'deep learning', 'data science', 'artificial intelligence', 'ai', 'ml',
+  'summary', 'curriculum', 'vitae', 'resume', 'projects', 'education', 'certifications', 'intern', 'internship'
+];
+
+const isDisallowedLocation = (str) => {
+  if (!str || typeof str !== 'string') return true;
+  const trimmed = str.trim();
+  if (trimmed.length < 2 || trimmed.length > 60) return true;
+  const lower = trimmed.toLowerCase();
+  for (const word of LOCATION_BLACKLIST_WORDS) {
+    const regex = new RegExp(`\\b${word.replace('+', '\\+')}\\b`, 'i');
+    if (regex.test(lower)) return true;
+  }
+  // Exclude years or long number strings
+  if (/\b(?:19|20)\d{2}\b/.test(trimmed)) return true;
+  if (/\d{7,}/.test(trimmed)) return true;
+  return false;
+};
+
+/**
+ * Extract candidate location using high-confidence heuristics
+ * Avoids false positives from skills, technical descriptions, or institution names
+ */
+const extractLocation = (rawText, lines = []) => {
+  if (!rawText || typeof rawText !== 'string') return null;
+
+  // 1. Explicit labeled location (e.g. "Location: Bengaluru, India", "Address: Los Angeles, CA")
+  const labelRegex = /(?:Location|Address|Based in|Current Location)[:\s-]*([^\r\n|•\t]+)/i;
+  const labelMatch = rawText.match(labelRegex);
+  if (labelMatch) {
+    const candidate = labelMatch[1].trim().replace(/^[:\s-]+|[,.\s-]+$/g, '');
+    if (!isDisallowedLocation(candidate)) {
+      return candidate;
+    }
+  }
+
+  // 2. Unlabeled location in header lines (top 10 lines)
+  const headerLines = (lines || []).slice(0, 10);
+  const countryPattern = COUNTRY_AND_REGIONS.join('|');
+  const regionRegex = new RegExp(`\\b([A-Z][a-zA-Z\\s.'-]+,\\s*(?:${countryPattern}))\\b`, 'i');
+  const usStateRegex = /\b([A-Z][a-zA-Z\s.'-]+),\s*([A-Z]{2})(?:\s+(\d{5}(?:-\d{4})?))?\b/;
+
+  for (const line of headerLines) {
+    if (/^(?:SKILLS|EXPERIENCE|EDUCATION|PROJECTS|CERTIFICATIONS|SUMMARY)[:\s]/i.test(line)) {
+      continue;
+    }
+
+    const segments = line.split(/[|•;\t]/).map((s) => s.trim()).filter(Boolean);
+
+    for (const segment of segments) {
+      if (isDisallowedLocation(segment)) continue;
+
+      // Check US City, State Code
+      const usMatch = segment.match(usStateRegex);
+      if (usMatch) {
+        const stateCode = usMatch[2].toUpperCase();
+        if (US_STATE_CODES.has(stateCode)) {
+          const loc = usMatch[3]
+            ? `${usMatch[1].trim()}, ${stateCode} ${usMatch[3]}`
+            : `${usMatch[1].trim()}, ${stateCode}`;
+          if (!isDisallowedLocation(loc)) {
+            return loc;
+          }
+        }
+      }
+
+      // Check City, Country / State
+      const regMatch = segment.match(regionRegex);
+      if (regMatch) {
+        const loc = regMatch[1].trim();
+        if (!isDisallowedLocation(loc)) {
+          return loc;
+        }
+      }
+
+      // Check standalone Remote
+      if (/^Remote(?:\s*\(.*?\))?$/i.test(segment) || /\bRemote\b/i.test(segment)) {
+        if (!isDisallowedLocation(segment)) {
+          return 'Remote';
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
 /**
  * Extract phone number supporting international, Indian (+91, spaces, hyphens, 10-digit mobile)
  * and North American formats while avoiding false positives like years, CGPA, and postal codes.
@@ -157,6 +272,18 @@ const extractPhoneNumber = (rawText) => {
     }
   }
 
+  // 4. Phone number immediately followed by email without whitespace delimiter (e.g. 7001101737vishesh... or +917001101737vishesh...)
+  const emailPrefixMatch = rawText.match(
+    /(?:(?:\+?91[\s.-]?|0)?[6-9]\d{9}|(?:\+?1[\s.-]?)?[2-9]\d{2}[2-9]\d{6}|\b\d{10,12})(?=[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/
+  );
+  if (emailPrefixMatch) {
+    const candidate = emailPrefixMatch[0].trim();
+    const digits = candidate.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 15) {
+      return candidate;
+    }
+  }
+
   return null;
 };
 
@@ -174,14 +301,45 @@ const extractPersonalInfo = (rawText, lines) => {
     portfolio: null,
   };
 
-  // 1. Email extraction
+  // 1. Email extraction & Phone separation
+  let phoneFromEmail = null;
   const emailMatch = rawText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if (emailMatch) {
-    personalInfo.email = emailMatch[0].trim();
+    let candidateEmail = emailMatch[0].trim();
+
+    // Check if phone number is glued/prepended to the email address
+    const indianConcatMatch = candidateEmail.match(
+      /^(?:\+?91[\s.-]?|0)?([6-9]\d{9})[\s|/:-]*([a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/
+    );
+    if (indianConcatMatch) {
+      phoneFromEmail = indianConcatMatch[1];
+      candidateEmail = indianConcatMatch[2];
+    } else {
+      const naConcatMatch = candidateEmail.match(
+        /^(?:\+?1[\s.-]?)?([2-9]\d{2}[2-9]\d{6})[\s|/:-]*([a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/
+      );
+      if (naConcatMatch) {
+        phoneFromEmail = naConcatMatch[1];
+        candidateEmail = naConcatMatch[2];
+      } else {
+        const genConcatMatch = candidateEmail.match(
+          /^(?:\+?\d{1,4}[\s.-]?)?(\d{10,12})[\s|/:-]*([a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/
+        );
+        if (genConcatMatch) {
+          phoneFromEmail = genConcatMatch[1];
+          candidateEmail = genConcatMatch[2];
+        }
+      }
+    }
+
+    personalInfo.email = candidateEmail.replace(/^[^a-zA-Z0-9]+/, '');
   }
 
   // 2. Phone extraction (Indian & International formats with full digit preservation)
   personalInfo.phone = extractPhoneNumber(rawText);
+  if (!personalInfo.phone && phoneFromEmail) {
+    personalInfo.phone = phoneFromEmail;
+  }
 
   // 3. LinkedIn URL
   const linkedinMatch = rawText.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
@@ -207,30 +365,32 @@ const extractPersonalInfo = (rawText, lines) => {
     personalInfo.portfolio = portfolioMatch[0].trim();
   }
 
-  // 6. Location (City, State/Country heuristics)
-  const locationMatch = rawText.match(
-    /(?:Location|Address)?[:\s-]*([A-Z][a-zA-Z\s]+,\s*[A-Z]{2}(?:\s+\d{5})?|[A-Z][a-zA-Z\s]+,\s*[A-Z][a-zA-Z\s]+)/
-  );
-  if (locationMatch && !locationMatch[1].includes('University') && !locationMatch[1].includes('Engineer')) {
-    personalInfo.location = locationMatch[1].trim();
-  }
+  // 6. Location (City, State/Country heuristics - never skills or tech stack)
+  personalInfo.location = extractLocation(rawText, lines);
 
   // 7. Full Name heuristic: first 5 non-empty lines, looking for capitalized 2-4 word name
   for (let i = 0; i < Math.min(5, lines.length); i++) {
     const line = lines[i];
-    if (
-      !line.includes('@') &&
-      !line.includes('http') &&
-      !line.includes('www.') &&
-      !line.match(/\d{3}/) &&
-      !line.toUpperCase().includes('RESUME') &&
-      !line.toUpperCase().includes('CURRICULUM') &&
-      !line.toUpperCase().includes('PROFILE') &&
-      /^[A-Z][a-zA-Z'-]+(?:\s+[A-Z][a-zA-Z'-]+){1,3}$/.test(line)
-    ) {
-      personalInfo.fullName = line.trim();
-      break;
+    const candidateNames = [line];
+    if (line.includes('|')) {
+      candidateNames.push(line.split('|')[0].trim());
     }
+    for (const cand of candidateNames) {
+      if (
+        !cand.includes('@') &&
+        !cand.includes('http') &&
+        !cand.includes('www.') &&
+        !cand.match(/\d{3}/) &&
+        !cand.toUpperCase().includes('RESUME') &&
+        !cand.toUpperCase().includes('CURRICULUM') &&
+        !cand.toUpperCase().includes('PROFILE') &&
+        /^[A-Z][a-zA-Z'-]+(?:\s+[A-Z][a-zA-Z'-]+){1,3}$/.test(cand)
+      ) {
+        personalInfo.fullName = cand.trim();
+        break;
+      }
+    }
+    if (personalInfo.fullName) break;
   }
 
   return personalInfo;
@@ -597,5 +757,6 @@ const parseResumeText = (rawText) => {
 module.exports = {
   parseResumeText,
   extractPhoneNumber,
+  extractLocation,
   SKILL_PATTERNS,
 };

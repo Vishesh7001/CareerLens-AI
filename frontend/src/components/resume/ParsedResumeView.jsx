@@ -219,6 +219,32 @@ const ParsedResumeView = ({ parsedData, rawText, className = '' }) => {
     };
   })();
 
+  // Sanitize contact details to decouple any phone prepended to email and provide consistent fallback for location
+  const contactInfo = (() => {
+    let email = personalInfo.email ? String(personalInfo.email).trim() : null;
+    let phone = personalInfo.phone ? String(personalInfo.phone).trim() : null;
+
+    if (email) {
+      const concatMatch =
+        email.match(/^(?:\+?91[\s.-]?|0)?([6-9]\d{9})[\s|/:-]*([a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/) ||
+        email.match(/^(?:\+?1[\s.-]?)?([2-9]\d{2}[2-9]\d{6})[\s|/:-]*([a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/) ||
+        email.match(/^(?:\+?\d{1,4}[\s.-]?)?(\d{10,12})[\s|/:-]*([a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/);
+      if (concatMatch) {
+        if (!phone) {
+          phone = concatMatch[1];
+        }
+        email = concatMatch[2];
+      }
+    }
+
+    const rawLoc = personalInfo.location ? String(personalInfo.location).trim() : '';
+    const location = rawLoc && rawLoc.toLowerCase() !== 'location not provided'
+      ? rawLoc
+      : 'Location not provided';
+
+    return { email, phone, location };
+  })();
+
   return (
     <div className={`space-y-5 ${className}`}>
       {/* 1. Personal Information Banner */}
@@ -251,26 +277,30 @@ const ParsedResumeView = ({ parsedData, rawText, className = '' }) => {
 
         {/* Contact Chips */}
         <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
-          {personalInfo.email && (
+          {contactInfo.email && (
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-brand-bg border border-brand-border/70 truncate">
               <Mail className="w-4 h-4 text-brand-primary flex-shrink-0" />
-              <span className="truncate text-brand-charcoal font-medium">{personalInfo.email}</span>
+              <span className="truncate text-brand-charcoal font-medium">{contactInfo.email}</span>
             </div>
           )}
-          {personalInfo.phone && (
+          {contactInfo.phone && (
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-brand-bg border border-brand-border/70 truncate">
               <Phone className="w-4 h-4 text-brand-primary flex-shrink-0" />
-              <span className="truncate text-brand-charcoal font-medium">{personalInfo.phone}</span>
+              <span className="truncate text-brand-charcoal font-medium">{contactInfo.phone}</span>
             </div>
           )}
-          {personalInfo.location && (
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-brand-bg border border-brand-border/70 truncate">
-              <MapPin className="w-4 h-4 text-brand-primary flex-shrink-0" />
-              <span className="truncate text-brand-charcoal font-medium">
-                {personalInfo.location}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-brand-bg border border-brand-border/70 truncate">
+            <MapPin className="w-4 h-4 text-brand-primary flex-shrink-0" />
+            <span
+              className={`truncate font-medium ${
+                contactInfo.location !== 'Location not provided'
+                  ? 'text-brand-charcoal'
+                  : 'text-brand-muted'
+              }`}
+            >
+              {contactInfo.location}
+            </span>
+          </div>
           {personalInfo.links?.linkedin && (
             <a
               href={formatUrl(personalInfo.links.linkedin)}
